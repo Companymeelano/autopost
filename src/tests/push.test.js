@@ -100,7 +100,7 @@ describe('push subscription API', () => {
     const plain = pushDecrypt(h.body, ck.private, ck.auth)
     const payload = JSON.parse(plain)
     expect(payload.title).toContain('آزمون')
-    expect(payload.url).toBe('/#/settings')
+    expect(payload.url).toBe('/settings')
   })
 
   it('order.paid triggers a site push (fire-and-forget hook)', async () => {
@@ -112,7 +112,7 @@ describe('push subscription API', () => {
     expect(hits.length).toBeGreaterThan(before)
     const payload = JSON.parse(pushDecrypt(hits[hits.length - 1].body, ck.private, ck.auth))
     expect(payload.title).toContain('سفارش پرداخت شد')
-    expect(payload.url).toContain('/#/order/')
+    expect(payload.url).toContain('/order/')
   })
 
   it('410 Gone prunes the subscription automatically', async () => {

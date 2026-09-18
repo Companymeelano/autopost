@@ -1,8 +1,8 @@
 /* eslint-env serviceworker */
 // PanahFit CMS — service worker (فاز ۲.۵)
 // استراتژی: shell/network-first با fallback به کش (آفلاین شدن پنل) · استت‌ها cache-first · API هیچ‌وقت کش نمی‌شود
-const SHELL_CACHE = 'pf-shell-v1'
-const ASSET_CACHE = 'pf-assets-v1'
+const SHELL_CACHE = 'pf-shell-v2'
+const ASSET_CACHE = 'pf-assets-v2'
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(SHELL_CACHE).then((c) => c.addAll(['./', './index.html', './manifest.webmanifest', './icons/icon-192.png'])).catch(() => {}))

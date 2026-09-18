@@ -18,6 +18,8 @@ import { generateCaption, createPayment, verifyPayment, aiSource, paymentSource 
 import { createMediaStore } from './media.js'
 import { createScheduler } from './scheduler.js'
 import { createPushService } from './push.js'
+import { createSms } from './sms.js'
+import { createSeoRenderer } from './seo.js'
 import { ROLE_PERMS, ROLE_LABELS, permsFor, editableColsFor } from './roles.js'
 import { defaultState, COLL_KEYS, VALID_CATS } from '../src/data/seeds.js'
 import { validateProduct, validatePost, validateCoupon, validateLogin } from '../src/utils/validation.js'
@@ -33,6 +35,11 @@ const SCHED = createScheduler({ DB, env: ENV, audit: DB.audit })
 const PUSH = createPushService(ENV, DB)
 /** ارسال fire-and-forget؛ خطا هرگز مسیر کاربر را نمی‌شکند */
 function siteNotify(payload) { PUSH.notify(payload).then((o) => console.log('[push-hook]', JSON.stringify(o))).catch((e) => console.log('[push-hook-err]', e.message)) }
+
+/* فاز ۵ — پیامک مرسوله (بدون مسدودسازی هرگز) */
+const SMS = createSms(ENV)
+/* فاز ۵ — پیام‌های عمومی دوزبانه بر اساس Accept-Language */
+const msgL = (req, fa, en) => (String((req && req.headers && req.headers['accept-language']) || '').toLowerCase().startsWith('en') ? en : fa)
 
 
 const loginLimiter = rateLimiter({ max: 8, windowMs: 60_000 })
@@ -179,7 +186,7 @@ async function handle(req, res) {
     const b = await readBody(req)
     const code = String(b.code ?? '').trim().toUpperCase()
     const amount = Number(b.amount)
-    if (!code || !Number.isFinite(amount) || amount <= 0) throw httpErr(422, 'کد و مبلغ (تومان، مثبت) را درست وارد کنید.')
+    if (!code || !Number.isFinite(amount) || amount <= 0) throw httpErr(422, msgL(req, 'کد و مبلغ (تومان، مثبت) را درست وارد کنید.', 'Enter a valid coupon code and a positive amount in Toman.'))
     const c = DB.getState().coupons.find((x) => x.code === code)
     const check = checkCoupon(c, amount)
     return sendJsonSafe(res, 200, check)
@@ -200,7 +207,7 @@ async function handle(req, res) {
     st.requests.unshift({ id, type: 'فرم تماس', subject, user, date: new Date().toLocaleString('fa-IR'), status: 'new', body })
     DB.replaceState(st); DB.bumpRev()
     DB.audit('site', 'request.create', `req#${id}`, subject.slice(0, 60))
-    siteNotify({ title: '📮 پیام جدید از سایت', body: `${user}: ${subject}`.slice(0, 120), url: '/#/messages', tag: 'request' })
+    siteNotify({ title: '📮 پیام جدید از سایت', body: `${user}: ${subject}`.slice(0, 120), url: '/messages', tag: 'request' })
     return sendJsonSafe(res, 201, { ok: true, id })
   }
 
@@ -234,19 +241,19 @@ async function handle(req, res) {
     })
   }
   if (path === '/api/public/orders' && method === 'POST') {
-    if (DB.getState().settings.maintenance) throw httpErr(503, 'سایت موقتاً در حالت نگهداری است.')
-    if (!orderLimiter(req.socket.remoteAddress || 'x')) throw httpErr(429, 'برای جلوگیری از سفارش‌های رباتیک، کمی بعد تلاش کنید.')
+    if (DB.getState().settings.maintenance) throw httpErr(503, msgL(req, 'سایت موقتاً در حالت نگهداری است.', 'The store is temporarily under maintenance.'), { en: true })
+    if (!orderLimiter(req.socket.remoteAddress || 'x')) throw httpErr(429, msgL(req, 'برای جلوگیری از سفارش‌های رباتیک، کمی بعد تلاش کنید.', 'Too many requests — please try again shortly.'))
     const b = await readBody(req)
     const st = DB.getState()
     const e = {}
     const buyer = String(b.buyer ?? '').trim()
     const phone = String(b.phone ?? '').replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).trim()
     const address = String(b.address ?? '').trim()
-    if (buyer.length < 3) e.buyer = 'نام و نام خانوادگی را کامل وارد کنید.'
-    if (!/^09\d{9}$/.test(phone)) e.phone = 'شماره موبایل باید با 09 شروع شده و ۱۱ رقم باشد.'
-    if (address.length < 10) e.address = 'آدرس کامل حداقل ۱۰ نویسه است.'
+    if (buyer.length < 3) e.buyer = msgL(req, 'نام و نام خانوادگی را کامل وارد کنید.', 'Please enter your full name.')
+    if (!/^09\d{9}$/.test(phone)) e.phone = msgL(req, 'شماره موبایل باید با 09 شروع شده و ۱۱ رقم باشد.', 'Mobile number must start with 09 and have 11 digits.')
+    if (address.length < 10) e.address = msgL(req, 'آدرس کامل حداقل ۱۰ نویسه است.', 'Shipping address must be at least 10 characters.')
     const raw = Array.isArray(b.items) ? b.items : []
-    if (!raw.length || raw.length > 30) throw httpErr(422, 'سبد خرید خالی یا بیش از حد بزرگ است.', { items: 'تعداد اقلام نامعتبر' })
+    if (!raw.length || raw.length > 30) throw httpErr(422, msgL(req, 'سبد خرید خالی یا بیش از حد بزرگ است.', 'Your cart is empty or too large.'), { items: msgL(req, 'تعداد اقلام نامعتبر', 'Invalid number of cart items') })
     const map = new Map(st.products.map((p) => [Number(p.id), p]))
     const clean = []
     for (const it of raw) {
@@ -259,14 +266,14 @@ async function handle(req, res) {
       if (qty > 99) { e['item_' + it.id] = 'حداکثر ۹۹ عدد در هر سفارش.'; continue }
       clean.push({ id: Number(p.id), title: p.title, price: Number(p.price) || 0, qty })
     }
-    if (Object.keys(e).length) throw httpErr(422, 'سبد خرید قابل ثبت نیست.', e)
+    if (Object.keys(e).length) throw httpErr(422, msgL(req, 'سبد خرید قابل ثبت نیست.', 'The cart cannot be submitted — check the highlighted items.'), e)
     const total = clean.reduce((s2, x) => s2 + x.price * x.qty, 0)
     let discount = 0; let coupon = null
     if (b.couponCode) {
       const code = String(b.couponCode).trim().toUpperCase()
       const c = st.coupons.find((x) => x.code === code)
       const chk = checkCoupon(c, total)
-      if (!chk.valid) throw httpErr(422, chk.message || 'کد تخفیف نامعتبر است.', { couponCode: chk.message || 'نامعتبر' })
+      if (!chk.valid) throw httpErr(422, chk.message || msgL(req, 'کد تخفیف نامعتبر است.', 'This coupon code is not valid.'), { couponCode: chk.message || msgL(req, 'نامعتبر', 'Invalid') })
       discount = chk.discount; coupon = code
     }
     const payable = total - discount
@@ -283,7 +290,7 @@ async function handle(req, res) {
     const ref = String(url.searchParams.get('ref') || '')
     const decision = String(url.searchParams.get('decision') || 'ok')
     const order = DB.orderByRef(ref)
-    if (!order) throw httpErr(404, 'سفارش یافت نشد.')
+    if (!order) throw httpErr(404, msgL(req, 'سفارش یافت نشد.', 'Order not found.'))
     if (order.status === 'waiting') {
       if (decision === 'ok' && order.authority) {
         try {
@@ -293,7 +300,7 @@ async function handle(req, res) {
             if (v.ok) DB.markTx(order.authority, v.refId, true)
             if (order.coupon) redeemCoupon(order.coupon)
             DB.audit('site', 'order.paid', ref, `ref:${v.refId || 'demo'}`)
-            siteNotify({ title: '⚡ سفارش پرداخت شد', body: `${ref} • ${(order.buyer || '')}`, url: '/#/order/' + encodeURIComponent(ref), tag: 'order' })
+            siteNotify({ title: '⚡ سفارش پرداخت شد', body: `${ref} • ${(order.buyer || '')}`, url: '/order/' + encodeURIComponent(ref), tag: 'order' })
           } else if (settled.error === 'insufficient_stock') {
             DB.failOrder(ref); DB.markTx(order.authority, null, false)
             DB.audit('site', 'order.stockfail', ref, settled.title || '')
@@ -304,17 +311,18 @@ async function handle(req, res) {
         DB.failOrder(ref)
       }
     }
-    res.writeHead(302, { Location: `/#/order/${encodeURIComponent(ref)}`, 'Content-Security-Policy': CSP })
+    res.writeHead(302, { Location: `/order/${encodeURIComponent(ref)}`, 'Content-Security-Policy': CSP })
     return res.end()
   }
   if (path.startsWith('/api/public/orders/') && method === 'GET') {
     const ref = path.slice('/api/public/orders/'.length)
     const order = /^PF-[A-Z0-9-]{4,}$/i.test(ref) ? DB.orderByRef(ref) : null
-    if (!order) throw httpErr(404, 'سفارش یافت نشد.')
+    if (!order) throw httpErr(404, msgL(req, 'سفارش یافت نشد.', 'Order not found.'))
     return sendJsonSafe(res, 200, {
       ref: order.ref, status: order.status, refId: order.ref_id || '', buyer: order.buyer,
       total: order.total, discount: order.discount, payable: order.payable, coupon: order.coupon,
       created_at: order.created_at, verified_at: order.verified_at,
+      carrier: order.carrier || '', tracking: order.tracking || '', timeline: order.timeline || [],
       items: order.items.map((i) => ({ id: i.id, title: i.title, qty: i.qty, price: i.price })),
     })
   }
@@ -588,7 +596,7 @@ async function handle(req, res) {
         if (v.ok && flipped && tx.coupon) redeemCoupon(tx.coupon)
       } catch { DB.markTx(authority, null, false) }
     } else if (tx && tx.status === 'waiting') DB.markTx(authority, null, false)
-    res.writeHead(302, { Location: `/#/payments?result=${tx && tx.status !== 'waiting' ? 'done' : 'fail'}&authority=${encodeURIComponent(authority)}`, 'Content-Security-Policy': CSP })
+    res.writeHead(302, { Location: `/payments?result=${tx && tx.status !== 'waiting' ? 'done' : 'fail'}&authority=${encodeURIComponent(authority)}`, 'Content-Security-Policy': CSP })
     res.end()
     return
   }
@@ -604,38 +612,36 @@ async function handle(req, res) {
       requirePerm(user, 'payments')
       const [, ref, op] = mOrd
       if (op === 'ship') {
-        const ok = DB.shipOrder(ref)
-        if (!ok) throw httpErr(409, 'فقط سفارش پرداخت‌شده قابل ارسال است.')
-        DB.audit(user.username, 'order.ship', ref, '')
-        return sendJsonSafe(res, 200, { ok: true, status: 'shipped' })
+        let sb = {}
+        try { sb = await readBody(req) } catch { /* بدنه اختیاری */ }
+        const carrier = String(sb.carrier ?? '').trim().slice(0, 40)
+        const tracking = String(sb.tracking ?? '').replace(/\s/g, '').slice(0, 60)
+        const ok = DB.shipOrder(ref, { carrier, tracking, by: user.username })
+        if (!ok) throw httpErr(409, msgL(req, 'فقط سفارش پرداخت‌شده قابل ارسال است.', 'Only a paid order can be shipped.'))
+        DB.audit(user.username, 'order.ship', ref, [carrier, tracking].filter(Boolean).join(' · '))
+        const ord = DB.orderByRef(ref)
+        siteNotify({ title: '📦 سفارش ارسال شد', body: `${ref}${tracking ? ' • کد رهگیری ' + tracking : ''}`, url: '/order/' + encodeURIComponent(ref), tag: 'order' })
+        SMS.send({ to: ord?.phone, template: ENV.SMS_SHIP_TEMPLATE || 'tracking-code', tokens: { tracking: tracking || '-', carrier: carrier || '-', ref } })
+          .then((r) => { try { DB.audit('system', 'sms.send', ref, JSON.stringify(r)) } catch { /* noop */ } })
+          .catch(() => {})
+        return sendJsonSafe(res, 200, { ok: true, status: 'shipped', carrier: ord?.carrier || '', tracking: ord?.tracking || '', timeline: ord?.timeline || [] })
       }
       const r = DB.cancelOrder(ref)
-      if (!r.ok) throw httpErr(409, r.error === 'not_found' ? 'سفارش یافت نشد.' : 'این سفارش در وضعیت فعلی قابل لغو نیست.')
+      if (!r.ok) throw httpErr(409, r.error === 'not_found' ? msgL(req, 'سفارش یافت نشد.', 'Order not found.') : msgL(req, 'این سفارش در وضعیت فعلی قابل لغو نیست.', 'This order cannot be cancelled in its current status.'))
       DB.audit(user.username, 'order.cancel', ref, r.refunded ? 'stock-refunded' : '')
       return sendJsonSafe(res, 200, { ok: true, status: 'cancelled', refunded: r.refunded })
     }
   }
 
 
+  /* ---- فاز ۴ (ادمین): گزارش مالی + اشتراک‌های پوش ---- */
   if (path === '/api/push' && method === 'GET') {
     requirePerm(user, 'state:settings')
     return sendJsonSafe(res, 200, { mode: PUSH.mode, items: PUSH.list(), total: DB.pushCount() })
   }
   if (path === '/api/push/test' && method === 'POST') {
     requirePerm(user, 'state:settings')
-    const out = await PUSH.notify({ title: '🧪 آزمون پوش پناه‌فیت', body: 'اگر این را می‌بینید، زنجیره VAPID+رمزنگاری سالم است.', url: '/#/settings', tag: 'test' })
-    DB.audit(user.username, 'push.test', '', JSON.stringify(out))
-    return sendJsonSafe(res, 200, out)
-  }
-
-  /* ---- فاز ۴ (ادمین): پوش + گزارش مالی ---- */
-  if (path === '/api/push' && method === 'GET') {
-    requirePerm(user, 'state:settings')
-    return sendJsonSafe(res, 200, { mode: PUSH.mode, items: PUSH.list(), total: DB.pushCount() })
-  }
-  if (path === '/api/push/test' && method === 'POST') {
-    requirePerm(user, 'state:settings')
-    const out = await PUSH.notify({ title: '🧪 آزمون پوش پناه‌فیت', body: 'اگر این را می‌بینید، زنجیره VAPID+رمزنگاری سالم است.', url: '/#/settings', tag: 'test' })
+    const out = await PUSH.notify({ title: '🧪 آزمون پوش پناه‌فیت', body: 'اگر این را می‌بینید، زنجیره VAPID+رمزنگاری سالم است.', url: '/settings', tag: 'test' })
     DB.audit(user.username, 'push.test', '', JSON.stringify(out))
     return sendJsonSafe(res, 200, out)
   }
@@ -756,7 +762,7 @@ function invoicePage(ref, req, res) {
 function sitemapXml(req, res) {
   const st = DB.getState()
   const base = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || 'localhost'}`
-  const urls = ['/', '/blog', '/contact', ...st.products.map((p) => `/#/product/${p.id}`), ...st.posts.filter((p) => p.status === 'published').map((p) => `/#/post/${p.id}`)]
+  const urls = ['/', '/blog', '/contact', ...st.products.map((p) => `/product/${p.id}`), ...st.posts.filter((p) => p.status === 'published').map((p) => `/post/${p.id}`)]
   const body = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
     urls.map((u) => `<url><loc>${esc(base + u)}</loc></url>`).join('') + '</urlset>'
   res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8', ...SECURITY_HEADERS })
@@ -765,12 +771,31 @@ function sitemapXml(req, res) {
 
 /* ================= سوکت HTTP ================= */
 const DIST = join(ROOT, 'dist')
+/* فاز ۵ — موتور prerender عمومی (state و rev از DB زنده) */
+const SEO = createSeoRenderer({ DIST, getState: () => DB.getState(), getRev: () => DB.getRev() })
 const server = createServer(async (req, res) => {
   try {
     const p = String(req.url || '/').split('?')[0]
     const SPECIAL = p === '/gateway' || p === '/sitemap.xml' || p === '/robots.txt' || p.startsWith('/invoice/')
     if (!p.startsWith('/api/') && !p.startsWith('/media/') && !SPECIAL) {
       if (existsSync(DIST) && (req.method === 'GET' || req.method === 'HEAD')) {
+        // فاز ۵ — prerender سئوی صفحات عمومی + noindex برای پنل (فقط GET؛ HEAD همان serveStatic)
+        if (req.method === 'GET' && SEO && !/\.[a-z0-9]{1,5}$/i.test(p)) { // فایل استاتیک prerender نمی‌شود
+          const seoHtml = SEO.render(p, req) || SEO.renderShellNoindex(req)
+          if (seoHtml) {
+            const ldHash = SEO.cspFor(seoHtml)
+            const csp = ldHash ? CSP.replace("script-src 'self'", `script-src 'self' ${ldHash}`) : CSP
+            const cached = !/noindex/i.test(seoHtml)
+            res.writeHead(200, {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Content-Security-Policy': csp,
+              'Cache-Control': cached ? 'public, max-age=30, stale-while-revalidate=120' : 'no-store',
+              'X-Prerender': cached ? 'seo' : 'shell',
+            })
+            res.end(seoHtml)
+            return
+          }
+        }
         return serveStatic(DIST, req.url || '/', res, CSP)
       }
       if ((req.url === '/' || req.url === '') && !existsSync(DIST)) {
@@ -793,7 +818,7 @@ const server = createServer(async (req, res) => {
 let schedTimer = null
 let sweepTimer = null
 if (!IS_TEST) {
-  schedTimer = setInterval(() => { SCHED.runOnce('cron').then((r) => { for (const d of r?.done || []) if (d.ok) siteNotify({ title: '📣 پست منتشر شد', body: 'پست زمان‌بندی‌شده با موفقیت منتشر شد.', url: '/#/posts', tag: 'post' }) }).catch(() => {}) }, 30_000)
+  schedTimer = setInterval(() => { SCHED.runOnce('cron').then((r) => { for (const d of r?.done || []) if (d.ok) siteNotify({ title: '📣 پست منتشر شد', body: 'پست زمان‌بندی‌شده با موفقیت منتشر شد.', url: '/posts', tag: 'post' }) }).catch(() => {}) }, 30_000)
   sweepTimer = setInterval(() => { try { MEDIA.sweep(referencedMediaPaths()) } catch { /* noop */ } }, 6 * 3600_000)
 }
 
@@ -805,4 +830,4 @@ if (!IS_TEST) {
   })
 }
 
-export { server, handle, assertState, DB, MEDIA, SCHED, stopTimers, checkCoupon, PUSH }
+export { server, handle, assertState, DB, MEDIA, SCHED, stopTimers, checkCoupon, PUSH, SMS, SEO }

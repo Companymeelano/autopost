@@ -13,6 +13,7 @@ const err = ref('')
 const loading = ref(true)
 
 const { t } = useI18n()
+const fd = (s) => { try { const d = new Date(s); return d.toLocaleString('fa-IR', { dateStyle: 'short', timeStyle: 'short' }) } catch { return s } }
 const LABEL = {
   waiting: ['fa-hourglass-half', '#ffd166'],
   paid: ['fa-circle-check', '#7dffb0'],
@@ -55,6 +56,21 @@ onMounted(async () => {
       <p class="od-pay"><span>{{ t('ck.pay') }}</span><b>{{ formatPrice(order.payable) }} تومان</b></p>
       <p v-if="order.refId" class="od-tr"><i class="fas fa-fingerprint"></i> {{ t('ord.track') }} {{ order.refId }}</p>
 
+      <section v-if="order.carrier || order.tracking" class="od-ship">
+        <h3><i class="fas fa-truck-fast"></i> {{ t('ord.shipCard') }}</h3>
+        <p v-if="order.carrier"><span>{{ t('ord.carrier') }}:</span> <b>{{ order.carrier }}</b></p>
+        <p v-if="order.tracking"><span>{{ t('ord.tracking') }}:</span> <b dir="ltr" class="mono">{{ order.tracking }}</b></p>
+      </section>
+      <section v-if="(order.timeline || []).length" class="od-tl">
+        <h3>{{ t('ord.timeline') }}</h3>
+        <ol>
+          <li v-for="(x, i) in order.timeline" :key="i">
+            <span class="tl-l">{{ t('ord.tl_' + x.label) || x.label }}</span>
+            <time dir="ltr">{{ fd(x.at) }}</time>
+          </li>
+        </ol>
+      </section>
+
       <div class="od-actions">
         <a v-if="order.status === 'waiting'" class="od-btn" :href="'/gateway?ref=' + encodeURIComponent(order.ref)">{{ t('ord.continue') }}</a>
         <RouterLink v-if="['failed', 'cancelled'].includes(order.status)" class="od-btn" to="/checkout">{{ t('ord.retry') }}</RouterLink>
@@ -83,4 +99,17 @@ onMounted(async () => {
 .od-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 .od-btn { background: #00ffaa; color: #04110b; font-weight: 800; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-size: .84rem; }
 .od-btn.ghost { background: transparent; color: #b9b9d0; border: 1px solid #2a2a44; }
+</style>
+
+<style scoped>
+.od-ship { text-align: start; background: #0c0c18; border: 1px solid #1f3a33; border-radius: 12px; padding: 12px 14px; margin: 14px 0 4px; }
+.od-ship h3 { margin: 0 0 8px; font-size: .85rem; color: #7dffb0; }
+.od-ship p { margin: 4px 0; font-size: .82rem; display: flex; gap: 8px; align-items: center; }
+.od-ship .mono { background: #101024; padding: 2px 8px; border-radius: 6px; letter-spacing: 1px; }
+.od-tl { text-align: start; margin: 10px 0 4px; }
+.od-tl h3 { margin: 0 0 6px; font-size: .8rem; color: #9ad7ff; }
+.od-tl ol { margin: 0; padding: 0 18px 0 0; list-style: none; }
+.od-tl li { display: flex; justify-content: space-between; gap: 10px; font-size: .78rem; border-inline-start: 2px solid #22223a; padding: 4px 10px; margin: 0; }
+.od-tl .tl-l { color: #c8c8e0; }
+.od-tl time { color: #8a8aa8; font-size: .72rem; }
 </style>

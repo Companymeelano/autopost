@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 // سناریوی کامل: لاگین → ساخت محصول → رفرش (ماندگاری DB) → حذف با undo → پرداخت دمو
 test('full admin flow', async ({ page }) => {
-  await page.goto('/#/login')
+  await page.goto('/login')
   await page.fill('#cms-username', 'admin')
   await page.fill('#cms-password', 'e2e-pass-123')
   await page.click('button[type=submit]')

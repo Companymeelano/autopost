@@ -42,13 +42,13 @@ test('complete public purchase flow with real server', async ({ page }) => {
   await expect(page.locator('.sheet')).toContainText('قابل پرداخت')
 
   // پنل: ورود مدیر و دیدن سفارش + کسر موجودی
-  await page.goto('/#/login')
+  await page.goto('/login')
   await page.fill('#login-user', 'admin')
   await page.fill('#login-pass', 'e2e-pass-123')
   await page.locator('button[type=submit]').click()
   await expect(page).toHaveURL(/#\/dashboard/, { timeout: 10_000 })
 
-  await page.goto('/#/orders')
+  await page.goto('/orders')
   await expect(page.locator('.cms-table tbody tr').first()).toContainText('PF-')
   await expect(page.locator('.st-chip').first()).toContainText('پرداخت‌شده')
 
@@ -60,7 +60,7 @@ test('complete public purchase flow with real server', async ({ page }) => {
   expect(acts).toContain('order.paid')
 
   // گزارش مالی ادمین با داده واقعی
-  await page.goto('/#/reports')
+  await page.goto('/reports')
   await expect(page.locator('.fin-kpis .net b')).toBeVisible()
   await expect(page.locator('.fin-kpis .k').first()).toContainText('سفارش')
 })

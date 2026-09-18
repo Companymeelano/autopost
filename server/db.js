@@ -61,6 +61,10 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
   `)
   // مهاجرت ملایم برای دیتابیس‌های فاز قبل
   try { db.exec('ALTER TABLE transactions ADD COLUMN coupon TEXT') } catch { /* موجود */ }
+  // فاز ۵ — مرسوله و گاه‌شمار وضعیت سفارش
+  try { db.exec('ALTER TABLE orders ADD COLUMN carrier TEXT') } catch { /* موجود */ }
+  try { db.exec('ALTER TABLE orders ADD COLUMN tracking TEXT') } catch { /* موجود */ }
+  try { db.exec("ALTER TABLE orders ADD COLUMN timeline TEXT NOT NULL DEFAULT '[]'") } catch { /* موجود */ }
   try { db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'") } catch { /* موجود */ }
 
   // --- seed یک‌باره ---
@@ -133,7 +137,11 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
   }
 
   const getRev = () => Number(stmt.getKv.get('rev')?.v ?? 1)
-  const shapeOrder = (r) => ({ ...r, items: JSON.parse(r.items || '[]') })
+  const shapeOrder = (r) => ({
+    ...r,
+    items: JSON.parse(r.items || '[]'),
+    timeline: (() => { try { return JSON.parse(r.timeline || '[]') } catch { return [] } })(),
+  })
 
   return {
     raw: db,
@@ -238,6 +246,7 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
     createOrder(o) {
       stmt.createOrder.run(o.ref, o.buyer, o.phone, o.address, o.note || '', JSON.stringify(o.items),
         o.total, o.discount || 0, o.payable, o.coupon || null, o.authority || null, 'waiting', new Date().toISOString())
+      this.orderLog(o.ref, { label: 'created' })
       return this.orderByRef(o.ref)
     },
     orderByRef(ref) { const r = stmt.orderByRef.get(String(ref)); return r && shapeOrder(r) },
@@ -263,6 +272,7 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
         stmt.orderSetStatus.run('paid', refId || 'DEMO-' + Date.now().toString(36).toUpperCase(), new Date().toISOString(), row.ref, 'waiting')
         db.exec('COMMIT')
         this.bumpRev()
+        this.orderLog(row.ref, { label: 'paid', ref_id: refId || null })
         return { ok: true, status: 'paid', ref: row.ref }
       } catch (e) { try { db.exec('ROLLBACK') } catch { /* noop */ } throw e }
     },
@@ -283,13 +293,31 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
         stmt.orderSetStatus.run('cancelled', null, new Date().toISOString(), row.ref, row.status)
         db.exec('COMMIT')
         this.bumpRev()
+        this.orderLog(row.ref, { label: 'cancelled', refunded: row.status === 'paid' })
         return { ok: true, status: 'cancelled', refunded: row.status === 'paid' }
       } catch (e) { try { db.exec('ROLLBACK') } catch { /* noop */ } throw e }
     },
     failOrder(ref) { return stmt.orderSetStatus.run('failed', null, new Date().toISOString(), String(ref), 'waiting').changes > 0 },
-    shipOrder(ref) {
+    /** فاز ۵ — افزودن یک گام به گاه‌شمار وضعیت سفارش */
+    orderLog(ref, entry) {
+      const cur = stmt.orderByRef.get(String(ref))
+      if (!cur) return null
+      let tl = []
+      try { tl = JSON.parse(cur.timeline || '[]') } catch { /* خراب */ }
+      tl.push({ at: new Date().toISOString(), ...entry })
+      if (tl.length > 40) tl = tl.slice(-40)
+      db.prepare('UPDATE orders SET timeline=? WHERE ref=?').run(JSON.stringify(tl), String(ref))
+      return tl
+    },
+    /** فاز ۵ — ثبت ارسال مرسوله: paid→shipped + اپراتور رهگیری + پیامک (توسط route) */
+    shipOrder(ref, { carrier = '', tracking = '', by = '' } = {}) {
       const n = stmt.orderSetStatus.run('shipped', null, new Date().toISOString(), String(ref), 'paid')
-      return n.changes > 0
+      if (!(n.changes > 0)) return false
+      const carrierV = String(carrier || '').trim().slice(0, 40) || null
+      const trackV = String(tracking || '').replace(/\s/g, '').slice(0, 60) || null
+      db.prepare('UPDATE orders SET carrier=?, tracking=? WHERE ref=?').run(carrierV, trackV, String(ref))
+      this.orderLog(ref, { label: 'shipped', carrier: carrierV, tracking: trackV, by: by || null })
+      return true
     },
     /** افزایش اتمی شمارنده مصرف کوپن با کد (بدون بازنویسی کل سند) */
     redeemCouponByCode(code) {

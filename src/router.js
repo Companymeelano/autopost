@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { useCms } from './stores/cms'
 import LoginView from './views/LoginView.vue'
 import DashboardView from './views/DashboardView.vue'
@@ -38,7 +38,7 @@ export const routes = [
 ]
 
 export function makeRouter() {
-  const router = createRouter({ history: createWebHashHistory(), routes })
+  const router = createRouter({ history: createWebHistory(), routes })
   // گارد احراز هویت — هر مسیر auth بدون لاگین به /login با query برمی‌گردد
   router.beforeEach((to) => {
     const cms = useCms()

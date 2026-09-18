@@ -60,8 +60,8 @@ describe('public site API', () => {
     expect(sm.status).toBe(200)
     expect(sm.headers.get('content-type')).toContain('application/xml')
     const xml = await sm.text()
-    expect(xml).toContain('/#/product/2')
-    expect(xml).toContain('/#/post/1')
+    expect(xml).toContain('/product/2')
+    expect(xml).toContain('/post/1')
     expect(xml).not.toContain('/#/post/2') // draft در sitemap نباشد
     const rb = await fetch(base + '/robots.txt')
     expect(await rb.text()).toContain('Sitemap:')
@@ -117,7 +117,7 @@ describe('public orders: create → gateway → settle', () => {
     const revBefore = DB.getRev()
     const r = await fetch(base + `/api/public/orders/return?ref=${encodeURIComponent(ref)}&decision=ok`, { redirect: 'manual' })
     expect(r.status).toBe(302)
-    expect(r.headers.get('location')).toBe(`/#/order/${ref}`)
+    expect(r.headers.get('location')).toBe(`/order/${ref}`)
     // استوک کسر و sold زیاد شده — هم در state ادمین
     const st = await (await fetch(base + '/api/state', { headers: { cookie: `pf_session=${SESSION}` } })).json()
     const p1 = st.products[0]
