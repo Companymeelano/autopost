@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.65% </span>
+                <span class="strong">23.15% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>22/93</span>
+                <span class='fraction'>22/95</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.65% </span>
+                <span class="strong">23.15% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>22/93</span>
+                <span class='fraction'>22/95</span>
             </div>
         
             
@@ -210,7 +210,10 @@
 <a name='L145'></a><a href='#L145'>145</a>
 <a name='L146'></a><a href='#L146'>146</a>
 <a name='L147'></a><a href='#L147'>147</a>
-<a name='L148'></a><a href='#L148'>148</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -220,6 +223,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -366,6 +370,7 @@
 <span class="cstat-no" title="statement not covered" >import { useCms } from '../../stores/cms'</span>
 <span class="cstat-no" title="statement not covered" >import { formatPrice, toFa, CATEGORY_LABELS } from '../../utils/format'</span>
 <span class="cstat-no" title="statement not covered" >import { setSeo } from '../../utils/seo'</span>
+<span class="cstat-no" title="statement not covered" >import { useI18n } from '../../i18n'</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >const site = useSite()</span>
 <span class="cstat-no" title="statement not covered" >const cart = useCart()</span>
@@ -373,6 +378,7 @@
 <span class="cstat-no" title="statement not covered" >const route = useRoute()</span>
 <span class="cstat-no" title="statement not covered" >const router = useRouter()</span>
 <span class="cstat-no" title="statement not covered" >const qty = ref(1)</span>
+<span class="cstat-no" title="statement not covered" >const { t } = useI18n()</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >onMounted(async () =&gt; { await site.load(); fixQty() })</span>
 <span class="cstat-no" title="statement not covered" >const product = computed(() =&gt; site.byId(route.params.id))</span>
@@ -397,9 +403,9 @@
 <span class="cstat-no" title="statement not covered" >  const p = product.value</span>
 <span class="cstat-no" title="statement not covered" >  if (!p) <span class="branch-0 cbranch-no" title="branch not covered" >return</span></span>
 <span class="cstat-no" title="statement not covered" >  const r = cart.add(p, qty.value)</span>
-<span class="cstat-no" title="statement not covered" >  if (!r.ok) <span class="branch-0 cbranch-no" title="branch not covered" >{ cms.toast('موجودی این محصول کافی نیست.', true); return }</span></span>
+<span class="cstat-no" title="statement not covered" >  if (!r.ok) <span class="branch-0 cbranch-no" title="branch not covered" >{ cms.toast(t('toast.oos'), true); return }</span></span>
 <span class="cstat-no" title="statement not covered" >  if (go) <span class="branch-0 cbranch-no" title="branch not covered" >return router.push('/checkout')</span></span>
-<span class="cstat-no" title="statement not covered" >  cms.toast(`«${p.title}» ×${toFa(qty.value)} به سبد اضافه شد.`)</span>
+<span class="cstat-no" title="statement not covered" >  cms.toast(`«${p.title}» ×${toFa(qty.value)} ` + t('toast.added'))</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &lt;/script&gt;
 &nbsp;
@@ -407,12 +413,12 @@
 <span class="cstat-no" title="statement not covered" >  &lt;section v-if="!site.products.length &amp;&amp; site.loading" class="pd-empty"&gt;در حال بارگذاری…&lt;/section&gt;</span>
 <span class="cstat-no" title="statement not covered" >  &lt;section v-else-if="!product" class="pd-empty"&gt;</span>
 <span class="cstat-no" title="statement not covered" >    &lt;i class="fas fa-face-frown"&gt;&lt;/i&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;p&gt;این محصول یافت نشد یا از فروشگاه حذف شده است.&lt;/p&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;RouterLink to="/" class="pd-back"&gt;بازگشت به فروشگاه&lt;/RouterLink&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;p&gt;{{ t('prod.notfound') }}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;RouterLink to="/" class="pd-back"&gt;{{ t('prod.back') }}&lt;/RouterLink&gt;</span>
 <span class="cstat-no" title="statement not covered" >  &lt;/section&gt;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  &lt;section v-else class="pd"&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;p class="pd-crumb"&gt;&lt;RouterLink to="/"&gt;فروشگاه&lt;/RouterLink&gt; / {{ CATEGORY_LABELS[product.cat<span class="branch-0 cbranch-no" title="branch not covered" >] || 'محصولات' }} </span>/ {{ product.title }}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;p class="pd-crumb"&gt;&lt;RouterLink to="/"&gt;{{ t('nav.home') }}&lt;/RouterLink&gt; / {{ CATEGORY_LABELS[product.cat<span class="branch-0 cbranch-no" title="branch not covered" >] || 'محصولات' }} </span>/ {{ product.title }}&lt;/p&gt;</span>
 <span class="cstat-no" title="statement not covered" >    &lt;div class="pd-grid"&gt;</span>
 <span class="cstat-no" title="statement not covered" >      &lt;div class="pd-media"&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;img v-if="product.image" :src="product.image" :alt="product.title" /&gt;</span>
@@ -428,19 +434,19 @@
 <span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;p class="pd-stock" :class="product.stock<span class="branch-0 cbranch-no" title="branch not covered" > &gt; 10 ? 'in' : p</span>roduct.stock<span class="branch-0 cbranch-no" title="branch not covered" > &gt; 0 ? 'low' : 'out'"&gt;</span></span>
 <span class="cstat-no" title="statement not covered" >          &lt;i class="fas" :class="product.stock<span class="branch-0 cbranch-no" title="branch not covered" > &gt; 0 ? 'fa-circle-check' : 'fa-circle-xmark'"&gt;&lt;/i&gt;</span></span>
-<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >          &lt;span v-if="product.stock &gt; 10"&gt;موجود در انبار ({{ toFa(product.stock) }} عدد)&lt;/span&gt;</span></span>
-<span class="cstat-no" title="statement not covered" >          &lt;span v-else-if="product.stock &gt; 0"&gt;فقط {{ toFa(product.stock) }} عدد باقی مانده!&lt;/span&gt;</span>
-<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >          &lt;span v-else&gt;ناموجود&lt;/span&gt;</span></span>
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >          &lt;span v-if="product.stock &gt; 10"&gt;{{ t('prod.stock.in') }} ({{ toFa(product.stock) }})&lt;/span&gt;</span></span>
+<span class="cstat-no" title="statement not covered" >          &lt;span v-else-if="product.stock &gt; 0"&gt;{{ toFa(product.stock) }} {{ t('prod.stock.low') }}&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >          &lt;span v-else&gt;{{ t('prod.stock.out') }}&lt;/span&gt;</span></span>
 <span class="cstat-no" title="statement not covered" >        &lt;/p&gt;</span>
-<span class="cstat-no" title="statement not covered" >        &lt;p class="pd-desc"&gt;{{ product.desc<span class="branch-0 cbranch-no" title="branch not covered" > || 'برای این محصول توضیحی ثبت نشده است.' }}&lt;/p&gt;</span></span>
+<span class="cstat-no" title="statement not covered" >        &lt;p class="pd-desc"&gt;{{ product.desc<span class="branch-0 cbranch-no" title="branch not covered" > || t('prod.desc.empty') }}&lt;/p&gt;</span></span>
 <span class="cstat-no" title="statement not covered" >        &lt;div class="pd-buy"&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;div class="qty-box" role="group" aria-label="تعداد"&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;button type="button" :disabled="qty &lt;= 1" @click<span class="fstat-no" title="function not covered" >="qty--" a</span>ria-label="کاهش"&gt;−&lt;/button&gt;</span>
             &lt;input v-model.number="qty" type="number" min="1" :max="Math.max(1, product.stock)" aria-label="تعداد" /&gt;
             &lt;button type="button" :disabled="qty &gt;= product.stock" @click="qty++" aria-label="افزایش"&gt;+&lt;/button&gt;
           &lt;/div&gt;
-          &lt;button class="pd-add" :disabled="product.stock &lt;= 0" @click="addToCart(false)"&gt;&lt;i class="fas fa-cart-plus"&gt;&lt;/i&gt; افزودن به سبد&lt;/button&gt;
-          &lt;button class="pd-buynow" :disabled="product.stock &lt;= 0" @click<span class="fstat-no" title="function not covered" >="addToCart(true)"&gt;خ</span>رید فوری&lt;/button&gt;
+          &lt;button class="pd-add" :disabled="product.stock &lt;= 0" @click="addToCart(false)"&gt;&lt;i class="fas fa-cart-plus"&gt;&lt;/i&gt; {{ t('prod.add') }}&lt;/button&gt;
+          &lt;button class="pd-buynow" :disabled="product.stock &lt;= 0" @click<span class="fstat-no" title="function not covered" >="addToCart(true)"&gt;{{ t</span>('prod.buynow') }}&lt;/button&gt;
         &lt;/div&gt;
         &lt;div v-if="tags.length" class="pd-tags"&gt;
           &lt;span v-for="t in tags" :key="t" class="pd-tag"&gt;{{ t }}&lt;/span&gt;
@@ -449,7 +455,7 @@
     &lt;/div&gt;
 &nbsp;
     &lt;div v-if="similar.length" class="pd-similar"&gt;
-      &lt;h2&gt;محصولات مشابه&lt;/h2&gt;
+      &lt;h2&gt;{{ t('prod.similar') }}&lt;/h2&gt;
       &lt;div class="sim-grid"&gt;
         &lt;RouterLink v-for="s in similar" :key="s.id" :to="'/product/' + s.id" class="sim-card"&gt;
           &lt;div class="sim-img"&gt;&lt;img v-if="s.image" :src="s.image" :alt="s.title" loading="lazy" /&gt;&lt;i v-else class="fas fa-shirt"&gt;&lt;/i&gt;&lt;/div&gt;
@@ -511,7 +517,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-18T16:56:46.724Z
+                at 2026-09-18T17:31:03.345Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

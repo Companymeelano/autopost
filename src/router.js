@@ -31,6 +31,7 @@ export const routes = [
   { path: '/ai', name: 'ai', component: AIView, meta: { auth: true, nav: 'ai', title: 'تولید محتوای هوشمند' } },
   { path: '/audit', name: 'audit', component: () => import('./views/AuditView.vue'), meta: { auth: true, nav: 'audit', title: 'گزارش ممیزی' } },
   { path: '/users', name: 'users', component: () => import('./views/UsersView.vue'), meta: { auth: true, nav: 'users', title: 'کاربران و نقش‌ها' } },
+  { path: '/reports', name: 'reports', component: () => import('./views/ReportsView.vue'), meta: { auth: true, nav: 'reports', title: 'گزارش مالی و تسویه' } },
   { path: '/payments', name: 'payments', component: () => import('./views/PaymentView.vue'), meta: { auth: true, nav: 'payments', title: 'پرداخت و تراکنش‌ها' } },
   { path: '/settings', name: 'settings', component: SettingsView, meta: { auth: true, nav: 'settings', title: 'تنظیمات' } },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' },

@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>53/53</span>
+                <span class='fraction'>55/55</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/10</span>
+                <span class='fraction'>6/9</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>53/53</span>
+                <span class='fraction'>55/55</span>
             </div>
         
             
@@ -147,7 +147,16 @@
 <a name='L82'></a><a href='#L82'>82</a>
 <a name='L83'></a><a href='#L83'>83</a>
 <a name='L84'></a><a href='#L84'>84</a>
-<a name='L85'></a><a href='#L85'>85</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -155,11 +164,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -237,6 +241,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCart } from '../../stores/cart'
 import { formatPrice, toFa } from '../../utils/format'
+import { useI18n } from '../../i18n'
 &nbsp;
 const route = useRoute()
 const cart = useCart()
@@ -244,12 +249,13 @@ const order = ref(null)
 const err = ref('')
 const loading = ref(true)
 &nbsp;
+const { t } = useI18n()
 const LABEL = {
-  waiting: ['در انتظار پرداخت', 'fa-hourglass-half', '#ffd166'],
-  paid: ['پرداخت موفق — در صف پردازش', 'fa-circle-check', '#7dffb0'],
-  shipped: ['ارسال شده', 'fa-truck-fast', '#7dffb0'],
-  cancelled: ['لغو شده', 'fa-ban', '#ff5a7a'],
-  failed: ['پرداخت ناموفق', 'fa-circle-xmark', '#ff5a7a'],
+  waiting: ['fa-hourglass-half', '#ffd166'],
+  paid: ['fa-circle-check', '#7dffb0'],
+  shipped: ['fa-truck-fast', '#7dffb0'],
+  cancelled: ['fa-ban', '#ff5a7a'],
+  failed: ['fa-circle-xmark', '#ff5a7a'],
 }
 &nbsp;
 onMounted(async () =&gt; {
@@ -267,29 +273,29 @@ onMounted(async () =&gt; {
 &nbsp;
 &lt;template&gt;
   &lt;section class="od"&gt;
-    &lt;p v-if="loading"&gt;در حال بررسی…&lt;/p&gt;
+    &lt;p v-if="loading"&gt;{{ t('ord.checking') }}&lt;/p&gt;
     &lt;div v-else-if="err" class="od-box bad"&gt;&lt;i class="fas fa-triangle-exclamation"&gt;&lt;/i&gt; {{ err }}&lt;/div&gt;
     &lt;div v-else class="od-box"&gt;
-      &lt;i class="fas od-ico" :class="LABEL[order.status]?.[1]" :style="{ color: LABEL[order.status<span class="branch-0 cbranch-no" title="branch not covered" >]?.[2] || '#9a9ab5' }"&gt;&lt;/i&gt;</span>
+      &lt;i class="fas od-ico" :class="LABEL[order.status]?.[0]" :style="{ color: LABEL[order.status<span class="branch-0 cbranch-no" title="branch not covered" >]?.[1] || '#9a9ab5' }"&gt;&lt;/i&gt;</span>
       &lt;h1&gt;{{ order.ref }}&lt;/h1&gt;
-      &lt;p class="od-status" :style="{ color: LABEL[order.status]?.[2] }"&gt;{{ LABEL[order.status<span class="branch-0 cbranch-no" title="branch not covered" >]?.[0] || order.status </span>}}&lt;/p&gt;
+      &lt;p class="od-status" :style="{ color: LABEL[order.status]?.[1] }"&gt;{{ t('ord.' + order.status) }}&lt;/p&gt;
 &nbsp;
       &lt;table class="od-tbl"&gt;
-        &lt;thead&gt;&lt;tr&gt;&lt;th&gt;محصول&lt;/th&gt;&lt;th&gt;تعداد&lt;/th&gt;&lt;th&gt;مبلغ&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+        &lt;thead&gt;&lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
         &lt;tbody&gt;
           &lt;tr v-for="it in order.items" :key="it.id"&gt;&lt;td&gt;{{ it.title }}&lt;/td&gt;&lt;td&gt;{{ toFa(it.qty) }}&lt;/td&gt;&lt;td&gt;{{ formatPrice(it.price * it.qty) }}&lt;/td&gt;&lt;/tr&gt;
         &lt;/tbody&gt;
       &lt;/table&gt;
 &nbsp;
-      &lt;p&gt;&lt;span&gt;جمع کل&lt;/span&gt;&lt;b&gt;{{ formatPrice(order.total) }} تومان&lt;/b&gt;&lt;/p&gt;
+      &lt;p&gt;&lt;span&gt;{{ t('ck.total') }}&lt;/span&gt;&lt;b&gt;{{ formatPrice(order.total) }} تومان&lt;/b&gt;&lt;/p&gt;
       &lt;p v-if="order.discount"&gt;&lt;span&gt;تخفیف {{ order.coupon }}&lt;/span&gt;&lt;b class="cut"&gt;− {{ formatPrice(order.discount) }}&lt;/b&gt;&lt;/p&gt;
-      &lt;p class="od-pay"&gt;&lt;span&gt;پرداخت‌شده&lt;/span&gt;&lt;b&gt;{{ formatPrice(order.payable) }} تومان&lt;/b&gt;&lt;/p&gt;
-      &lt;p v-if="order.refId" class="od-tr"&gt;&lt;i class="fas fa-fingerprint"&gt;&lt;/i&gt; کد رهگیری: {{ order.refId }}&lt;/p&gt;
+      &lt;p class="od-pay"&gt;&lt;span&gt;{{ t('ck.pay') }}&lt;/span&gt;&lt;b&gt;{{ formatPrice(order.payable) }} تومان&lt;/b&gt;&lt;/p&gt;
+      &lt;p v-if="order.refId" class="od-tr"&gt;&lt;i class="fas fa-fingerprint"&gt;&lt;/i&gt; {{ t('ord.track') }} {{ order.refId }}&lt;/p&gt;
 &nbsp;
       &lt;div class="od-actions"&gt;
-        &lt;a v-if="order.status === 'waiting'" class="od-btn" :href="'/gateway?ref=' + encodeURIComponent(order.ref)"&gt;ادامه پرداخت&lt;/a&gt;
-        &lt;RouterLink v-if="['failed', 'cancelled'].includes(order.status)" class="od-btn" to="/checkout"&gt;بازگشت و تلاش دوباره&lt;/RouterLink&gt;
-        &lt;RouterLink class="od-btn ghost" to="/"&gt;ادامه خرید&lt;/RouterLink&gt;
+        &lt;a v-if="order.status === 'waiting'" class="od-btn" :href="'/gateway?ref=' + encodeURIComponent(order.ref)"&gt;{{ t('ord.continue') }}&lt;/a&gt;
+        &lt;RouterLink v-if="['failed', 'cancelled'].includes(order.status)" class="od-btn" to="/checkout"&gt;{{ t('ord.retry') }}&lt;/RouterLink&gt;
+        &lt;RouterLink class="od-btn ghost" to="/"&gt;{{ t('ord.keep') }}&lt;/RouterLink&gt;
       &lt;/div&gt;
     &lt;/div&gt;
   &lt;/section&gt;
@@ -322,7 +328,7 @@ onMounted(async () =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-18T16:56:46.724Z
+                at 2026-09-18T17:31:03.345Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

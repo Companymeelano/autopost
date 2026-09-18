@@ -6,6 +6,7 @@ import { useSite } from '../../stores/site'
 import { useCart } from '../../stores/cart'
 import { useCms } from '../../stores/cms'
 import { formatPrice, toFa, CATEGORY_LABELS } from '../../utils/format'
+import { useI18n } from '../../i18n'
 
 const site = useSite()
 const cart = useCart()
@@ -14,6 +15,7 @@ const router = useRouter()
 const q = ref('')
 const cat = ref('')
 const sort = ref('popular')
+const { t } = useI18n()
 
 onMounted(() => site.load())
 
@@ -31,7 +33,7 @@ function quickAdd(p, ev) {
   ev.stopPropagation()
   if ((p.stock ?? 0) <= 0) return
   const r = cart.add(p, 1)
-  cms.toast(r.ok ? `«${p.title}» به سبد اضافه شد.` : 'موجودی این محصول تکمیل است.', !r.ok)
+  cms.toast(r.ok ? `«${p.title}» ` + t('toast.added') : t('toast.oos'), !r.ok)
 }
 </script>
 
@@ -39,36 +41,36 @@ function quickAdd(p, ev) {
   <section class="shop">
     <div v-if="site.settings.newDiscount" class="shop-hero">
       <div>
-        <h1>توان و تناسب، با <span class="glow">پناه‌فیت</span></h1>
-        <p>کالکشن ورزشی با <b>تخفیف ویژه محصولات جدید</b> — ارسال سریع به سراسر کشور</p>
+        <h1>{{ t('hero.title1') }} <span class="glow">{{ t('hero.title2') }}</span></h1>
+        <p>{{ t('hero.sub') }} <b>{{ t('hero.sub2') }}</b> {{ t('hero.sub3') }}</p>
       </div>
-      <RouterLink class="hero-btn" to="/blog">مجله ورزشی <i class="fas fa-arrow-left"></i></RouterLink>
+      <RouterLink class="hero-btn" to="/blog">{{ t('hero.blog') }} <i class="fas fa-arrow-left"></i></RouterLink>
     </div>
 
     <div class="shop-bar">
-      <input v-model="q" class="shop-q" type="search" placeholder="جست‌وجوی محصول…" aria-label="جست‌وجوی محصول" />
+      <input v-model="q" class="shop-q" type="search" :placeholder="t('search')" :aria-label="t('search')" />
       <div class="chip-row" role="group" aria-label="دسته‌بندی">
-        <button class="chip" :class="{ on: cat === '' }" @click="cat = ''">همه</button>
+        <button class="chip" :class="{ on: cat === '' }" @click="cat = ''">{{ t('all') }}</button>
         <button v-for="c in cats" :key="c.key" class="chip" :class="{ on: cat === c.key }" @click="cat = c.key">{{ c.label }}</button>
       </div>
       <select v-model="sort" class="shop-sort" aria-label="مرتب‌سازی">
-        <option value="popular">پرفروش‌ترین</option>
-        <option value="fresh">جدیدترین</option>
-        <option value="cheap">ارزان‌ترین</option>
-        <option value="expensive">گران‌ترین</option>
+        <option value="popular">{{ t('sort.popular') }}</option>
+        <option value="fresh">{{ t('sort.fresh') }}</option>
+        <option value="cheap">{{ t('sort.cheap') }}</option>
+        <option value="expensive">{{ t('sort.expensive') }}</option>
       </select>
     </div>
 
-    <p v-if="site.loading" class="shop-note">در حال بارگذاری محصولات…</p>
-    <p v-else-if="!list.length" class="shop-note">محصولی با این فیلترها پیدا نشد.</p>
+    <p v-if="site.loading" class="shop-note">{{ t('loading') }}</p>
+    <p v-else-if="!list.length" class="shop-note">{{ t('nofound') }}</p>
 
     <div v-else class="prod-grid">
       <article v-for="p in list" :key="p.id" class="prod-card" :class="{ oos: (p.stock ?? 0) <= 0 }" tabindex="0" role="link" :aria-label="'مشاهده ' + p.title" @click="open(p)" @keydown.enter="open(p)">
         <div class="prod-img">
           <img v-if="p.image" :src="p.image" :alt="p.title" loading="lazy" />
           <i v-else class="fas fa-shirt"></i>
-          <span v-if="(p.stock ?? 0) <= 0" class="oos-chip">ناموجود</span>
-          <span v-else-if="p.oldPrice > p.price" class="off-chip">{{ toFa(Math.round((1 - p.price / p.oldPrice) * 100)) }}٪ تخفیف</span>
+          <span v-if="(p.stock ?? 0) <= 0" class="oos-chip">{{ t('oos') }}</span>
+          <span v-else-if="p.oldPrice > p.price" class="off-chip">{{ toFa(Math.round((1 - p.price / p.oldPrice) * 100)) }} {{ t('off') }}</span>
         </div>
         <div class="prod-body">
           <h3>{{ p.title }}</h3>
@@ -84,7 +86,7 @@ function quickAdd(p, ev) {
         </div>
       </article>
     </div>
-    <p v-if="site.source === 'local'" class="shop-note" style="margin-top:18px">⚠ مشاهده آفلاین — برای ثبت سفارش و پرداخت آنلاین، سرور باید در دسترس باشد.</p>
+    <p v-if="site.source === 'local'" class="shop-note" style="margin-top:18px">{{ t('offline') }}</p>
   </section>
 </template>
 

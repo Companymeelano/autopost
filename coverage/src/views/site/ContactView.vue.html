@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>64/64</span>
+                <span class='fraction'>66/66</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">63.63% </span>
+                <span class="strong">55.55% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>21/33</span>
+                <span class='fraction'>15/27</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>64/64</span>
+                <span class='fraction'>66/66</span>
             </div>
         
             
@@ -156,11 +156,15 @@
 <a name='L91'></a><a href='#L91'>91</a>
 <a name='L92'></a><a href='#L92'>92</a>
 <a name='L93'></a><a href='#L93'>93</a>
-<a name='L94'></a><a href='#L94'>94</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -253,6 +257,7 @@
 // فرم تماس عمومی → POST /api/public/requests (نمایش در MessagesView پنل)
 import { reactive, ref } from 'vue'
 import { useSite } from '../../stores/site'
+import { useI18n } from '../../i18n'
 &nbsp;
 const site = useSite()
 const form = reactive({ user: '', subject: '', body: '' })
@@ -260,6 +265,7 @@ const errors = reactive({})
 const sent = ref(0)
 const busy = ref(false)
 const msg = ref('')
+const { t } = useI18n()
 &nbsp;
 async function submit() {
   for (const k of Object.keys(errors)) <span class="branch-0 cbranch-no" title="branch not covered" >delete errors[k]</span>
@@ -285,8 +291,8 @@ async function submit() {
   &lt;section class="ct"&gt;
     &lt;div class="ct-grid"&gt;
       &lt;div&gt;
-        &lt;h1&gt;با ما در تماس باشید&lt;/h1&gt;
-        &lt;p class="ct-lead"&gt;پشتیبانی سفارش، همکاری فروشگاهی یا سوال درباره سایز — پیام شما مستقیم در میز کار پنل پناه‌فیت ثبت می‌شود.&lt;/p&gt;
+        &lt;h1&gt;{{ t('ct.title') }}&lt;/h1&gt;
+        &lt;p class="ct-lead"&gt;{{ t('ct.lead') }}&lt;/p&gt;
         &lt;ul class="ct-info"&gt;
           &lt;li v-if="site.settings.phone"&gt;&lt;i class="fas fa-phone"&gt;&lt;/i&gt; {{ site.settings.phone }}&lt;/li&gt;
           &lt;li v-if="site.settings.telegramChannel"&gt;&lt;i class="fab fa-telegram"&gt;&lt;/i&gt; {{ site.settings.telegramChannel }}&lt;/li&gt;
@@ -294,27 +300,27 @@ async function submit() {
         &lt;/ul&gt;
       &lt;/div&gt;
       &lt;form v-if="!sent" class="ct-card" @submit.prevent="submit"&gt;
-        &lt;h2&gt;فرم تماس&lt;/h2&gt;
+        &lt;h2&gt;{{ t('ct.form') }}&lt;/h2&gt;
 <span class="branch-0 cbranch-no" title="branch not covered" >        &lt;p v-if="msg" class="ct-err"&gt;{{ msg }}&lt;/p&gt;</span>
-        &lt;label&gt;نام شما
+        &lt;label&gt;{{ t('ct.user') }}
           &lt;input v-model="form.user" id="ct-user" class="ct-in" :class="{ bad: errors.user }" /&gt;
         &lt;/label&gt;
 <span class="branch-0 cbranch-no" title="branch not covered" >        &lt;p v-if="errors.user" class="ct-ferr"&gt;{{ errors.user }}&lt;/p&gt;</span>
-        &lt;label&gt;موضوع
+        &lt;label&gt;{{ t('ct.subject') }}
           &lt;input v-model="form.subject" id="ct-subject" class="ct-in" :class="{ bad: errors.subject }" /&gt;
         &lt;/label&gt;
 <span class="branch-0 cbranch-no" title="branch not covered" >        &lt;p v-if="errors.subject" class="ct-ferr"&gt;{{ errors.subject }}&lt;/p&gt;</span>
-        &lt;label&gt;متن پیام
+        &lt;label&gt;{{ t('ct.body') }}
           &lt;textarea v-model="form.body" id="ct-body" rows="5" class="ct-in" :class="{ bad: errors.body }"&gt;&lt;/textarea&gt;
         &lt;/label&gt;
 <span class="branch-0 cbranch-no" title="branch not covered" >        &lt;p v-if="errors.body" class="ct-ferr"&gt;{{ errors.body }}&lt;/p&gt;</span>
-        &lt;button class="ct-send" type="submit" :disabled="busy"&gt;{{ busy ? 'در حال ارسال…' : 'ارسال پیام' }}&lt;/button&gt;
+        &lt;button class="ct-send" type="submit" :disabled="busy"&gt;{{ busy ? '…' : t('ct.send') }}&lt;/button&gt;
       &lt;/form&gt;
       &lt;div v-else class="ct-card ct-done"&gt;
         &lt;i class="fas fa-paper-plane"&gt;&lt;/i&gt;
-        &lt;h2&gt;پیام شما ثبت شد ✅&lt;/h2&gt;
-        &lt;p&gt;تیم پناه‌فیت معمولاً کمتر از ۲۴ ساعت پاسخ می‌دهد. درخواست با شماره &lt;b&gt;#{{ sent }}&lt;/b&gt; در صف پشتیبانی است.&lt;/p&gt;
-        &lt;button type="button" class="ct-send ghost" @click<span class="fstat-no" title="function not covered" >="sent = 0; form.user = form.subject = form.body = ''"&gt;ا</span>رسال پیام دیگر&lt;/button&gt;
+        &lt;h2&gt;{{ t('ct.done') }}&lt;/h2&gt;
+        &lt;p&gt;{{ t('ct.doneSub') }} &lt;b&gt;#{{ sent }}&lt;/b&gt;&lt;/p&gt;
+        &lt;button type="button" class="ct-send ghost" @click<span class="fstat-no" title="function not covered" >="sent = 0; form.user = form.subject = form.body = ''"&gt;{{ t</span>('ct.another') }}&lt;/button&gt;
       &lt;/div&gt;
     &lt;/div&gt;
   &lt;/section&gt;
@@ -349,7 +355,7 @@ async function submit() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-18T16:56:46.724Z
+                at 2026-09-18T17:31:03.345Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -2,6 +2,7 @@
 // فرم تماس عمومی → POST /api/public/requests (نمایش در MessagesView پنل)
 import { reactive, ref } from 'vue'
 import { useSite } from '../../stores/site'
+import { useI18n } from '../../i18n'
 
 const site = useSite()
 const form = reactive({ user: '', subject: '', body: '' })
@@ -9,6 +10,7 @@ const errors = reactive({})
 const sent = ref(0)
 const busy = ref(false)
 const msg = ref('')
+const { t } = useI18n()
 
 async function submit() {
   for (const k of Object.keys(errors)) delete errors[k]
@@ -34,8 +36,8 @@ async function submit() {
   <section class="ct">
     <div class="ct-grid">
       <div>
-        <h1>با ما در تماس باشید</h1>
-        <p class="ct-lead">پشتیبانی سفارش، همکاری فروشگاهی یا سوال درباره سایز — پیام شما مستقیم در میز کار پنل پناه‌فیت ثبت می‌شود.</p>
+        <h1>{{ t('ct.title') }}</h1>
+        <p class="ct-lead">{{ t('ct.lead') }}</p>
         <ul class="ct-info">
           <li v-if="site.settings.phone"><i class="fas fa-phone"></i> {{ site.settings.phone }}</li>
           <li v-if="site.settings.telegramChannel"><i class="fab fa-telegram"></i> {{ site.settings.telegramChannel }}</li>
@@ -43,27 +45,27 @@ async function submit() {
         </ul>
       </div>
       <form v-if="!sent" class="ct-card" @submit.prevent="submit">
-        <h2>فرم تماس</h2>
+        <h2>{{ t('ct.form') }}</h2>
         <p v-if="msg" class="ct-err">{{ msg }}</p>
-        <label>نام شما
+        <label>{{ t('ct.user') }}
           <input v-model="form.user" id="ct-user" class="ct-in" :class="{ bad: errors.user }" />
         </label>
         <p v-if="errors.user" class="ct-ferr">{{ errors.user }}</p>
-        <label>موضوع
+        <label>{{ t('ct.subject') }}
           <input v-model="form.subject" id="ct-subject" class="ct-in" :class="{ bad: errors.subject }" />
         </label>
         <p v-if="errors.subject" class="ct-ferr">{{ errors.subject }}</p>
-        <label>متن پیام
+        <label>{{ t('ct.body') }}
           <textarea v-model="form.body" id="ct-body" rows="5" class="ct-in" :class="{ bad: errors.body }"></textarea>
         </label>
         <p v-if="errors.body" class="ct-ferr">{{ errors.body }}</p>
-        <button class="ct-send" type="submit" :disabled="busy">{{ busy ? 'در حال ارسال…' : 'ارسال پیام' }}</button>
+        <button class="ct-send" type="submit" :disabled="busy">{{ busy ? '…' : t('ct.send') }}</button>
       </form>
       <div v-else class="ct-card ct-done">
         <i class="fas fa-paper-plane"></i>
-        <h2>پیام شما ثبت شد ✅</h2>
-        <p>تیم پناه‌فیت معمولاً کمتر از ۲۴ ساعت پاسخ می‌دهد. درخواست با شماره <b>#{{ sent }}</b> در صف پشتیبانی است.</p>
-        <button type="button" class="ct-send ghost" @click="sent = 0; form.user = form.subject = form.body = ''">ارسال پیام دیگر</button>
+        <h2>{{ t('ct.done') }}</h2>
+        <p>{{ t('ct.doneSub') }} <b>#{{ sent }}</b></p>
+        <button type="button" class="ct-send ghost" @click="sent = 0; form.user = form.subject = form.body = ''">{{ t('ct.another') }}</button>
       </div>
     </div>
   </section>

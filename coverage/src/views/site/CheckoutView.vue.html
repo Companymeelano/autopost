@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">14.96% </span>
+                <span class="strong">14.72% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>19/127</span>
+                <span class='fraction'>19/129</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.58% </span>
+                <span class="strong">80.7% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>56/67</span>
+                <span class='fraction'>46/57</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">14.96% </span>
+                <span class="strong">14.72% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>19/127</span>
+                <span class='fraction'>19/129</span>
             </div>
         
             
@@ -251,13 +251,17 @@
 <a name='L186'></a><a href='#L186'>186</a>
 <a name='L187'></a><a href='#L187'>187</a>
 <a name='L188'></a><a href='#L188'>188</a>
-<a name='L189'></a><a href='#L189'>189</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -445,6 +449,7 @@
 <span class="cstat-no" title="statement not covered" >import { useSite } from '../../stores/site'</span>
 <span class="cstat-no" title="statement not covered" >import { useCart } from '../../stores/cart'</span>
 <span class="cstat-no" title="statement not covered" >import { formatPrice, toFa } from '../../utils/format'</span>
+<span class="cstat-no" title="statement not covered" >import { useI18n } from '../../i18n'</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >const site = useSite()</span>
 <span class="cstat-no" title="statement not covered" >const cart = useCart()</span>
@@ -453,6 +458,7 @@
 <span class="cstat-no" title="statement not covered" >const busy = ref(false)</span>
 <span class="cstat-no" title="statement not covered" >const serverMsg = ref('')</span>
 <span class="cstat-no" title="statement not covered" >const created = ref(null)</span>
+<span class="cstat-no" title="statement not covered" >const { t } = useI18n()</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >onMounted(async () =&gt; { await site.load(); if (site.products.length) cart.reconcile(site.products) })</span>
 &nbsp;
@@ -465,10 +471,10 @@
 <span class="cstat-no" title="statement not covered" >async function submit() {</span>
 <span class="cstat-no" title="statement not covered" >  serverMsg.value = ''</span>
 <span class="cstat-no" title="statement not covered" >  for (const k of Object.keys(errors)) delete errors[k]</span>
-<span class="cstat-no" title="statement not covered" >  if (!cart.items.length) <span class="branch-0 cbranch-no" title="branch not covered" >{ errors.items = 'سبد خرید خالی است.'; return }</span></span>
-<span class="cstat-no" title="statement not covered" >  if (form.buyer.trim().length &lt; 3) errors.buyer = 'نام را کامل وارد کنید.'</span>
-<span class="cstat-no" title="statement not covered" >  if (!/^09\d{9}$/.test(form.phone.replace(/[۰-۹]/g, (d) =&gt; String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).trim())) errors.phone = 'شماره موبایل معتبر نیست.'</span>
-<span class="cstat-no" title="statement not covered" >  if (form.address.trim().length &lt; 10) errors.address = 'آدرس کامل را بنویسید (حداقل ۱۰ نویسه).'</span>
+<span class="cstat-no" title="statement not covered" >  if (!cart.items.length) <span class="branch-0 cbranch-no" title="branch not covered" >{ errors.items = t('ck.e.items'); return }</span></span>
+<span class="cstat-no" title="statement not covered" >  if (form.buyer.trim().length &lt; 3) errors.buyer = t('ck.e.buyer')</span>
+<span class="cstat-no" title="statement not covered" >  if (!/^09\d{9}$/.test(form.phone.replace(/[۰-۹]/g, (d) =&gt; String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).trim())) errors.phone = t('ck.e.phone')</span>
+<span class="cstat-no" title="statement not covered" >  if (form.address.trim().length &lt; 10) errors.address = t('ck.e.address')</span>
 <span class="cstat-no" title="statement not covered" >  if (Object.keys(errors).length) return</span>
 <span class="cstat-no" title="statement not covered" >  if (!site.canBuy) <span class="branch-0 cbranch-no" title="branch not covered" >{ serverMsg.value = 'برای ثبت سفارش آنلاین، سرور باید در دسترس باشد (حالت آفلاین فقط مرور است).'; return }</span></span>
 <span class="cstat-no" title="statement not covered" >  busy.value = true</span>
@@ -499,7 +505,7 @@
 &nbsp;
 &lt;template&gt;
 <span class="cstat-no" title="statement not covered" >  &lt;section class="ck"&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;h1&gt;&lt;i class="fas fa-receipt"&gt;&lt;/i&gt; تسویه حساب&lt;/h1&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;h1&gt;&lt;i class="fas fa-receipt"&gt;&lt;/i&gt; {{ t('ck.title') }}&lt;/h1&gt;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    &lt;div v-if="created" class="ck-created"&gt;</span>
 <span class="cstat-no" title="statement not covered" >      &lt;b&gt;سفارش {{ created.ref }} ثبت شد.&lt;/b&gt;</span>
@@ -509,13 +515,13 @@
 &nbsp;
 <span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >    &lt;p v-if="errors.items" class="ck-err"&gt;{{ errors.items }}&lt;/p&gt;</span></span>
 <span class="cstat-no" title="statement not covered" >    &lt;p v-if="!cart.items.length &amp;&amp; !created" class="ck-empty"&gt;</span>
-<span class="cstat-no" title="statement not covered" >      سبد خرید خالی است. &lt;RouterLink to="/"&gt;رفتن به فروشگاه&lt;/RouterLink&gt;</span>
+<span class="cstat-no" title="statement not covered" >      {{ t('ck.empty') }} &lt;RouterLink to="/"&gt;{{ t('ck.gotoShop') }}&lt;/RouterLink&gt;</span>
 <span class="cstat-no" title="statement not covered" >    &lt;/p&gt;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    &lt;div v-else class="ck-grid"&gt;</span>
 <span class="cstat-no" title="statement not covered" >      &lt;div class="ck-left"&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;div class="ck-card"&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;h2&gt;اقلام سبد ({{ toFa(cart.count) }})&lt;/h2&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;h2&gt;{{ t('ck.items') }} ({{ toFa(cart.count) }})&lt;/h2&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;ul class="ck-list"&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;li v-for="x in cart.items" :key="x.id"&gt;</span>
 <span class="cstat-no" title="statement not covered" >              &lt;div class="ck-t"&gt;</span>
@@ -536,46 +542,46 @@
 <span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >        &lt;form class="ck-card" @submit.prevent="cart.verifyCoupon()"&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;h2&gt;کد تخفیف&lt;/h2&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;h2&gt;{{ t('ck.coupon') }}&lt;/h2&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;div class="ck-coupon"&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;input v-model="cart.coupon.code" id="ck-code" class="ck-in" placeholder="مثلاً WELCOME" aria-label="کد تخفیف" /&gt;</span>
-<span class="cstat-no" title="statement not covered" >            &lt;button class="ck-apply" :disabled="cart.coupon.checking || !cart.coupon.code.trim()"&gt;اعمال&lt;/button&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;button class="ck-apply" :disabled="cart.coupon.checking || !cart.coupon.code.trim()"&gt;{{ t('ck.apply') }}&lt;/button&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;p v-if="cart.coupon.message" class="ck-coupon-msg" :class="{ ok: cart.coupon.valid }"&gt;{{ cart.coupon.message }}&lt;/p&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;/form&gt;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >        &lt;form class="ck-card" @submit.prevent="submit"&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;h2&gt;مشخصات ارسال&lt;/h2&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;label&gt;نام و نام خانوادگی &lt;span class="req"&gt;*&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;h2&gt;{{ t('ck.sum') }}&lt;/h2&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;label&gt;{{ t('ck.buyer') }} &lt;span class="req"&gt;*&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;input v-model="form.buyer" id="ck-buyer" class="ck-in" :class="{ bad: errors.buyer }" autocomplete="name" /&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/label&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;p v-if="errors.buyer" class="ck-field-err"&gt;{{ errors.buyer }}&lt;/p&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;label&gt;موبایل &lt;span class="req"&gt;*&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;label&gt;{{ t('ck.phone') }} &lt;span class="req"&gt;*&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;input v-model="form.phone" id="ck-phone" class="ck-in" placeholder="09xxxxxxxxx" :class="{ bad: errors.phone }" inputmode="tel" /&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/label&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;p v-if="errors.phone" class="ck-field-err"&gt;{{ errors.phone }}&lt;/p&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;label&gt;آدرس کامل &lt;span class="req"&gt;*&lt;/span&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;label&gt;{{ t('ck.address') }} &lt;span class="req"&gt;*&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;textarea v-model="form.address" id="ck-address" class="ck-in ck-ta" rows="3" :class="{ bad: errors.address }"&gt;&lt;/textarea&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/label&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;p v-if="errors.address" class="ck-field-err"&gt;{{ errors.address }}&lt;/p&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;label&gt;توضیحات سفارش</span>
+<span class="cstat-no" title="statement not covered" >          &lt;label&gt;{{ t('ck.note') }}</span>
             &lt;textarea v-model="form.note" class="ck-in ck-ta" rows="2"&gt;&lt;/textarea&gt;
           &lt;/label&gt;
 <span class="branch-0 cbranch-no" title="branch not covered" >          &lt;p v-if="errors.note || errors.couponCode" class="ck-field-err"&gt;{{ errors.note || errors.couponCode }}&lt;/p&gt;</span>
 <span class="branch-0 cbranch-no" title="branch not covered" >          &lt;p v-if="serverMsg" class="ck-err"&gt;{{ serverMsg }}&lt;/p&gt;</span>
           &lt;button class="ck-pay" type="submit" :disabled="busy || !cart.items.length"&gt;
-            &lt;i class="fas fa-lock"&gt;&lt;/i&gt; {{ busy ? 'در حال ثبت…' : 'تأیید و پرداخت آنلاین' }}
+            &lt;i class="fas fa-lock"&gt;&lt;/i&gt; {{ busy ? '…' : t('ck.submit') }}
           &lt;/button&gt;
         &lt;/form&gt;
       &lt;/div&gt;
 &nbsp;
       &lt;aside class="ck-sum" aria-label="خلاصه مبلغ"&gt;
-        &lt;h2&gt;خلاصه سفارش&lt;/h2&gt;
-        &lt;p&gt;&lt;span&gt;جمع اقلام&lt;/span&gt;&lt;b&gt;{{ formatPrice(summary.total) }}&lt;/b&gt;&lt;/p&gt;
-        &lt;p v-if="summary.discount"&gt;&lt;span&gt;تخفیف کوپن &lt;small v-if="cart.coupon.valid"&gt;({{ toFa(cart.coupon.percent) }}٪)&lt;/small&gt;&lt;/span&gt;&lt;b class="cut"&gt;− {{ formatPrice(summary.discount) }}&lt;/b&gt;&lt;/p&gt;
+        &lt;h2&gt;{{ t('ck.sum') }}&lt;/h2&gt;
+        &lt;p&gt;&lt;span&gt;{{ t('ck.total') }}&lt;/span&gt;&lt;b&gt;{{ formatPrice(summary.total) }}&lt;/b&gt;&lt;/p&gt;
+        &lt;p v-if="summary.discount"&gt;&lt;span&gt;{{ t('ck.discount') }} &lt;small v-if="cart.coupon.valid"&gt;({{ toFa(cart.coupon.percent) }}٪)&lt;/small&gt;&lt;/span&gt;&lt;b class="cut"&gt;− {{ formatPrice(summary.discount) }}&lt;/b&gt;&lt;/p&gt;
         &lt;hr /&gt;
-        &lt;p class="ck-final"&gt;&lt;span&gt;قابل پرداخت&lt;/span&gt;&lt;b&gt;{{ formatPrice(summary.payable) }} تومان&lt;/b&gt;&lt;/p&gt;
-        &lt;p class="ck-note"&gt;قیمت‌ها نهایی در سرور محاسبه و پس از پرداخت، موجودی انبار کسر می‌شود.&lt;/p&gt;
+        &lt;p class="ck-final"&gt;&lt;span&gt;{{ t('ck.pay') }}&lt;/span&gt;&lt;b&gt;{{ formatPrice(summary.payable) }} تومان&lt;/b&gt;&lt;/p&gt;
+        &lt;p class="ck-note"&gt;{{ t('ck.priceNote') }}&lt;/p&gt;
       &lt;/aside&gt;
     &lt;/div&gt;
   &lt;/section&gt;
@@ -634,7 +640,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-18T16:56:46.724Z
+                at 2026-09-18T17:31:03.345Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

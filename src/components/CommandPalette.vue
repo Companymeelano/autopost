@@ -21,6 +21,7 @@ const PAGES = [
   { label: 'هوش مصنوعی', page: 'ai', icon: 'fa-brain' },
   { label: 'پرداخت‌ها', page: 'payments', icon: 'fa-credit-card' },
   { label: 'سفارش‌های فروشگاه', page: 'orders', icon: 'fa-receipt' },
+  { label: 'گزارش مالی و تسویه', page: 'reports', icon: 'fa-chart-line' },
   { label: 'مشاهده سایت', page: '', icon: 'fa-globe', external: true },
   { label: 'تنظیمات', page: 'settings', icon: 'fa-cog' },
 ]

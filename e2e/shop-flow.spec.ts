@@ -12,6 +12,13 @@ test('complete public purchase flow with real server', async ({ page }) => {
   await expect(page.locator('.pd-info h1')).toHaveText(firstName)
   await page.locator('.pd-add').click()
 
+  // چک‌پوینت فاز ۴: سوئیچ زبان روی همان مسیر
+  await page.locator('.site-lang').click()
+  await expect(page.locator('.site-nav a').first()).toHaveText('Shop')
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr')
+  await page.locator('.site-lang').click()
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+
   // checkout و ثبت سفارش
   await page.locator('.site-cart').click()
   await expect(page).toHaveURL(/#\/checkout/)
@@ -30,6 +37,10 @@ test('complete public purchase flow with real server', async ({ page }) => {
   await expect(page.locator('.od-status')).toContainText('پرداخت موفق')
   await expect(page.locator('.od-tr')).toContainText('کد رهگیری')
 
+  // صفحه فاکتور قابل‌چاپ (فاز ۴)
+  await page.goto(`/invoice/${(page.url().match(/order\/(PF-[\w-]+)/) || [])[1]}`)
+  await expect(page.locator('.sheet')).toContainText('قابل پرداخت')
+
   // پنل: ورود مدیر و دیدن سفارش + کسر موجودی
   await page.goto('/#/login')
   await page.fill('#login-user', 'admin')
@@ -47,4 +58,9 @@ test('complete public purchase flow with real server', async ({ page }) => {
   const acts = body.items.map((i: { action: string }) => i.action)
   expect(acts).toContain('order.create')
   expect(acts).toContain('order.paid')
+
+  // گزارش مالی ادمین با داده واقعی
+  await page.goto('/#/reports')
+  await expect(page.locator('.fin-kpis .net b')).toBeVisible()
+  await expect(page.locator('.fin-kpis .k').first()).toContainText('سفارش')
 })

@@ -4,6 +4,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useSite } from '../../stores/site'
 import { useCart } from '../../stores/cart'
 import { formatPrice, toFa } from '../../utils/format'
+import { useI18n } from '../../i18n'
 
 const site = useSite()
 const cart = useCart()
@@ -12,6 +13,7 @@ const errors = reactive({})
 const busy = ref(false)
 const serverMsg = ref('')
 const created = ref(null)
+const { t } = useI18n()
 
 onMounted(async () => { await site.load(); if (site.products.length) cart.reconcile(site.products) })
 
@@ -24,10 +26,10 @@ const summary = computed(() => ({
 async function submit() {
   serverMsg.value = ''
   for (const k of Object.keys(errors)) delete errors[k]
-  if (!cart.items.length) { errors.items = 'سبد خرید خالی است.'; return }
-  if (form.buyer.trim().length < 3) errors.buyer = 'نام را کامل وارد کنید.'
-  if (!/^09\d{9}$/.test(form.phone.replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).trim())) errors.phone = 'شماره موبایل معتبر نیست.'
-  if (form.address.trim().length < 10) errors.address = 'آدرس کامل را بنویسید (حداقل ۱۰ نویسه).'
+  if (!cart.items.length) { errors.items = t('ck.e.items'); return }
+  if (form.buyer.trim().length < 3) errors.buyer = t('ck.e.buyer')
+  if (!/^09\d{9}$/.test(form.phone.replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).trim())) errors.phone = t('ck.e.phone')
+  if (form.address.trim().length < 10) errors.address = t('ck.e.address')
   if (Object.keys(errors).length) return
   if (!site.canBuy) { serverMsg.value = 'برای ثبت سفارش آنلاین، سرور باید در دسترس باشد (حالت آفلاین فقط مرور است).'; return }
   busy.value = true
@@ -58,7 +60,7 @@ async function submit() {
 
 <template>
   <section class="ck">
-    <h1><i class="fas fa-receipt"></i> تسویه حساب</h1>
+    <h1><i class="fas fa-receipt"></i> {{ t('ck.title') }}</h1>
 
     <div v-if="created" class="ck-created">
       <b>سفارش {{ created.ref }} ثبت شد.</b>
@@ -68,13 +70,13 @@ async function submit() {
 
     <p v-if="errors.items" class="ck-err">{{ errors.items }}</p>
     <p v-if="!cart.items.length && !created" class="ck-empty">
-      سبد خرید خالی است. <RouterLink to="/">رفتن به فروشگاه</RouterLink>
+      {{ t('ck.empty') }} <RouterLink to="/">{{ t('ck.gotoShop') }}</RouterLink>
     </p>
 
     <div v-else class="ck-grid">
       <div class="ck-left">
         <div class="ck-card">
-          <h2>اقلام سبد ({{ toFa(cart.count) }})</h2>
+          <h2>{{ t('ck.items') }} ({{ toFa(cart.count) }})</h2>
           <ul class="ck-list">
             <li v-for="x in cart.items" :key="x.id">
               <div class="ck-t">
@@ -95,46 +97,46 @@ async function submit() {
         </div>
 
         <form class="ck-card" @submit.prevent="cart.verifyCoupon()">
-          <h2>کد تخفیف</h2>
+          <h2>{{ t('ck.coupon') }}</h2>
           <div class="ck-coupon">
             <input v-model="cart.coupon.code" id="ck-code" class="ck-in" placeholder="مثلاً WELCOME" aria-label="کد تخفیف" />
-            <button class="ck-apply" :disabled="cart.coupon.checking || !cart.coupon.code.trim()">اعمال</button>
+            <button class="ck-apply" :disabled="cart.coupon.checking || !cart.coupon.code.trim()">{{ t('ck.apply') }}</button>
           </div>
           <p v-if="cart.coupon.message" class="ck-coupon-msg" :class="{ ok: cart.coupon.valid }">{{ cart.coupon.message }}</p>
         </form>
 
         <form class="ck-card" @submit.prevent="submit">
-          <h2>مشخصات ارسال</h2>
-          <label>نام و نام خانوادگی <span class="req">*</span>
+          <h2>{{ t('ck.sum') }}</h2>
+          <label>{{ t('ck.buyer') }} <span class="req">*</span>
             <input v-model="form.buyer" id="ck-buyer" class="ck-in" :class="{ bad: errors.buyer }" autocomplete="name" />
           </label>
           <p v-if="errors.buyer" class="ck-field-err">{{ errors.buyer }}</p>
-          <label>موبایل <span class="req">*</span>
+          <label>{{ t('ck.phone') }} <span class="req">*</span>
             <input v-model="form.phone" id="ck-phone" class="ck-in" placeholder="09xxxxxxxxx" :class="{ bad: errors.phone }" inputmode="tel" />
           </label>
           <p v-if="errors.phone" class="ck-field-err">{{ errors.phone }}</p>
-          <label>آدرس کامل <span class="req">*</span>
+          <label>{{ t('ck.address') }} <span class="req">*</span>
             <textarea v-model="form.address" id="ck-address" class="ck-in ck-ta" rows="3" :class="{ bad: errors.address }"></textarea>
           </label>
           <p v-if="errors.address" class="ck-field-err">{{ errors.address }}</p>
-          <label>توضیحات سفارش
+          <label>{{ t('ck.note') }}
             <textarea v-model="form.note" class="ck-in ck-ta" rows="2"></textarea>
           </label>
           <p v-if="errors.note || errors.couponCode" class="ck-field-err">{{ errors.note || errors.couponCode }}</p>
           <p v-if="serverMsg" class="ck-err">{{ serverMsg }}</p>
           <button class="ck-pay" type="submit" :disabled="busy || !cart.items.length">
-            <i class="fas fa-lock"></i> {{ busy ? 'در حال ثبت…' : 'تأیید و پرداخت آنلاین' }}
+            <i class="fas fa-lock"></i> {{ busy ? '…' : t('ck.submit') }}
           </button>
         </form>
       </div>
 
       <aside class="ck-sum" aria-label="خلاصه مبلغ">
-        <h2>خلاصه سفارش</h2>
-        <p><span>جمع اقلام</span><b>{{ formatPrice(summary.total) }}</b></p>
-        <p v-if="summary.discount"><span>تخفیف کوپن <small v-if="cart.coupon.valid">({{ toFa(cart.coupon.percent) }}٪)</small></span><b class="cut">− {{ formatPrice(summary.discount) }}</b></p>
+        <h2>{{ t('ck.sum') }}</h2>
+        <p><span>{{ t('ck.total') }}</span><b>{{ formatPrice(summary.total) }}</b></p>
+        <p v-if="summary.discount"><span>{{ t('ck.discount') }} <small v-if="cart.coupon.valid">({{ toFa(cart.coupon.percent) }}٪)</small></span><b class="cut">− {{ formatPrice(summary.discount) }}</b></p>
         <hr />
-        <p class="ck-final"><span>قابل پرداخت</span><b>{{ formatPrice(summary.payable) }} تومان</b></p>
-        <p class="ck-note">قیمت‌ها نهایی در سرور محاسبه و پس از پرداخت، موجودی انبار کسر می‌شود.</p>
+        <p class="ck-final"><span>{{ t('ck.pay') }}</span><b>{{ formatPrice(summary.payable) }} تومان</b></p>
+        <p class="ck-note">{{ t('ck.priceNote') }}</p>
       </aside>
     </div>
   </section>

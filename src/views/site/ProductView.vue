@@ -7,6 +7,7 @@ import { useCart } from '../../stores/cart'
 import { useCms } from '../../stores/cms'
 import { formatPrice, toFa, CATEGORY_LABELS } from '../../utils/format'
 import { setSeo } from '../../utils/seo'
+import { useI18n } from '../../i18n'
 
 const site = useSite()
 const cart = useCart()
@@ -14,6 +15,7 @@ const cms = useCms()
 const route = useRoute()
 const router = useRouter()
 const qty = ref(1)
+const { t } = useI18n()
 
 onMounted(async () => { await site.load(); fixQty() })
 const product = computed(() => site.byId(route.params.id))
@@ -38,9 +40,9 @@ function addToCart(go = false) {
   const p = product.value
   if (!p) return
   const r = cart.add(p, qty.value)
-  if (!r.ok) { cms.toast('موجودی این محصول کافی نیست.', true); return }
+  if (!r.ok) { cms.toast(t('toast.oos'), true); return }
   if (go) return router.push('/checkout')
-  cms.toast(`«${p.title}» ×${toFa(qty.value)} به سبد اضافه شد.`)
+  cms.toast(`«${p.title}» ×${toFa(qty.value)} ` + t('toast.added'))
 }
 </script>
 
@@ -48,12 +50,12 @@ function addToCart(go = false) {
   <section v-if="!site.products.length && site.loading" class="pd-empty">در حال بارگذاری…</section>
   <section v-else-if="!product" class="pd-empty">
     <i class="fas fa-face-frown"></i>
-    <p>این محصول یافت نشد یا از فروشگاه حذف شده است.</p>
-    <RouterLink to="/" class="pd-back">بازگشت به فروشگاه</RouterLink>
+    <p>{{ t('prod.notfound') }}</p>
+    <RouterLink to="/" class="pd-back">{{ t('prod.back') }}</RouterLink>
   </section>
 
   <section v-else class="pd">
-    <p class="pd-crumb"><RouterLink to="/">فروشگاه</RouterLink> / {{ CATEGORY_LABELS[product.cat] || 'محصولات' }} / {{ product.title }}</p>
+    <p class="pd-crumb"><RouterLink to="/">{{ t('nav.home') }}</RouterLink> / {{ CATEGORY_LABELS[product.cat] || 'محصولات' }} / {{ product.title }}</p>
     <div class="pd-grid">
       <div class="pd-media">
         <img v-if="product.image" :src="product.image" :alt="product.title" />
@@ -69,19 +71,19 @@ function addToCart(go = false) {
         </div>
         <p class="pd-stock" :class="product.stock > 10 ? 'in' : product.stock > 0 ? 'low' : 'out'">
           <i class="fas" :class="product.stock > 0 ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
-          <span v-if="product.stock > 10">موجود در انبار ({{ toFa(product.stock) }} عدد)</span>
-          <span v-else-if="product.stock > 0">فقط {{ toFa(product.stock) }} عدد باقی مانده!</span>
-          <span v-else>ناموجود</span>
+          <span v-if="product.stock > 10">{{ t('prod.stock.in') }} ({{ toFa(product.stock) }})</span>
+          <span v-else-if="product.stock > 0">{{ toFa(product.stock) }} {{ t('prod.stock.low') }}</span>
+          <span v-else>{{ t('prod.stock.out') }}</span>
         </p>
-        <p class="pd-desc">{{ product.desc || 'برای این محصول توضیحی ثبت نشده است.' }}</p>
+        <p class="pd-desc">{{ product.desc || t('prod.desc.empty') }}</p>
         <div class="pd-buy">
           <div class="qty-box" role="group" aria-label="تعداد">
             <button type="button" :disabled="qty <= 1" @click="qty--" aria-label="کاهش">−</button>
             <input v-model.number="qty" type="number" min="1" :max="Math.max(1, product.stock)" aria-label="تعداد" />
             <button type="button" :disabled="qty >= product.stock" @click="qty++" aria-label="افزایش">+</button>
           </div>
-          <button class="pd-add" :disabled="product.stock <= 0" @click="addToCart(false)"><i class="fas fa-cart-plus"></i> افزودن به سبد</button>
-          <button class="pd-buynow" :disabled="product.stock <= 0" @click="addToCart(true)">خرید فوری</button>
+          <button class="pd-add" :disabled="product.stock <= 0" @click="addToCart(false)"><i class="fas fa-cart-plus"></i> {{ t('prod.add') }}</button>
+          <button class="pd-buynow" :disabled="product.stock <= 0" @click="addToCart(true)">{{ t('prod.buynow') }}</button>
         </div>
         <div v-if="tags.length" class="pd-tags">
           <span v-for="t in tags" :key="t" class="pd-tag">{{ t }}</span>
@@ -90,7 +92,7 @@ function addToCart(go = false) {
     </div>
 
     <div v-if="similar.length" class="pd-similar">
-      <h2>محصولات مشابه</h2>
+      <h2>{{ t('prod.similar') }}</h2>
       <div class="sim-grid">
         <RouterLink v-for="s in similar" :key="s.id" :to="'/product/' + s.id" class="sim-card">
           <div class="sim-img"><img v-if="s.image" :src="s.image" :alt="s.title" loading="lazy" /><i v-else class="fas fa-shirt"></i></div>

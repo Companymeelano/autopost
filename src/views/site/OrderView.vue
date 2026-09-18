@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCart } from '../../stores/cart'
 import { formatPrice, toFa } from '../../utils/format'
+import { useI18n } from '../../i18n'
 
 const route = useRoute()
 const cart = useCart()
@@ -11,12 +12,13 @@ const order = ref(null)
 const err = ref('')
 const loading = ref(true)
 
+const { t } = useI18n()
 const LABEL = {
-  waiting: ['در انتظار پرداخت', 'fa-hourglass-half', '#ffd166'],
-  paid: ['پرداخت موفق — در صف پردازش', 'fa-circle-check', '#7dffb0'],
-  shipped: ['ارسال شده', 'fa-truck-fast', '#7dffb0'],
-  cancelled: ['لغو شده', 'fa-ban', '#ff5a7a'],
-  failed: ['پرداخت ناموفق', 'fa-circle-xmark', '#ff5a7a'],
+  waiting: ['fa-hourglass-half', '#ffd166'],
+  paid: ['fa-circle-check', '#7dffb0'],
+  shipped: ['fa-truck-fast', '#7dffb0'],
+  cancelled: ['fa-ban', '#ff5a7a'],
+  failed: ['fa-circle-xmark', '#ff5a7a'],
 }
 
 onMounted(async () => {
@@ -34,29 +36,29 @@ onMounted(async () => {
 
 <template>
   <section class="od">
-    <p v-if="loading">در حال بررسی…</p>
+    <p v-if="loading">{{ t('ord.checking') }}</p>
     <div v-else-if="err" class="od-box bad"><i class="fas fa-triangle-exclamation"></i> {{ err }}</div>
     <div v-else class="od-box">
-      <i class="fas od-ico" :class="LABEL[order.status]?.[1]" :style="{ color: LABEL[order.status]?.[2] || '#9a9ab5' }"></i>
+      <i class="fas od-ico" :class="LABEL[order.status]?.[0]" :style="{ color: LABEL[order.status]?.[1] || '#9a9ab5' }"></i>
       <h1>{{ order.ref }}</h1>
-      <p class="od-status" :style="{ color: LABEL[order.status]?.[2] }">{{ LABEL[order.status]?.[0] || order.status }}</p>
+      <p class="od-status" :style="{ color: LABEL[order.status]?.[1] }">{{ t('ord.' + order.status) }}</p>
 
       <table class="od-tbl">
-        <thead><tr><th>محصول</th><th>تعداد</th><th>مبلغ</th></tr></thead>
+        <thead><tr><th>#</th><th></th><th></th></tr></thead>
         <tbody>
           <tr v-for="it in order.items" :key="it.id"><td>{{ it.title }}</td><td>{{ toFa(it.qty) }}</td><td>{{ formatPrice(it.price * it.qty) }}</td></tr>
         </tbody>
       </table>
 
-      <p><span>جمع کل</span><b>{{ formatPrice(order.total) }} تومان</b></p>
+      <p><span>{{ t('ck.total') }}</span><b>{{ formatPrice(order.total) }} تومان</b></p>
       <p v-if="order.discount"><span>تخفیف {{ order.coupon }}</span><b class="cut">− {{ formatPrice(order.discount) }}</b></p>
-      <p class="od-pay"><span>پرداخت‌شده</span><b>{{ formatPrice(order.payable) }} تومان</b></p>
-      <p v-if="order.refId" class="od-tr"><i class="fas fa-fingerprint"></i> کد رهگیری: {{ order.refId }}</p>
+      <p class="od-pay"><span>{{ t('ck.pay') }}</span><b>{{ formatPrice(order.payable) }} تومان</b></p>
+      <p v-if="order.refId" class="od-tr"><i class="fas fa-fingerprint"></i> {{ t('ord.track') }} {{ order.refId }}</p>
 
       <div class="od-actions">
-        <a v-if="order.status === 'waiting'" class="od-btn" :href="'/gateway?ref=' + encodeURIComponent(order.ref)">ادامه پرداخت</a>
-        <RouterLink v-if="['failed', 'cancelled'].includes(order.status)" class="od-btn" to="/checkout">بازگشت و تلاش دوباره</RouterLink>
-        <RouterLink class="od-btn ghost" to="/">ادامه خرید</RouterLink>
+        <a v-if="order.status === 'waiting'" class="od-btn" :href="'/gateway?ref=' + encodeURIComponent(order.ref)">{{ t('ord.continue') }}</a>
+        <RouterLink v-if="['failed', 'cancelled'].includes(order.status)" class="od-btn" to="/checkout">{{ t('ord.retry') }}</RouterLink>
+        <RouterLink class="od-btn ghost" to="/">{{ t('ord.keep') }}</RouterLink>
       </div>
     </div>
   </section>

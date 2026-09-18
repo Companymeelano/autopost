@@ -2,16 +2,18 @@
 // وبلاگ — فقط پست‌های منتشرشده (از /api/public/site)
 import { onMounted } from 'vue'
 import { useSite } from '../../stores/site'
+import { useI18n } from '../../i18n'
 
 const site = useSite()
+const { t } = useI18n()
 onMounted(() => site.load())
 </script>
 
 <template>
   <section class="blog">
-    <h1><i class="fas fa-newspaper"></i> مجله پناه‌فیت</h1>
-    <p v-if="site.loading" class="bl-note">در حال بارگذاری…</p>
-    <p v-else-if="!site.posts.length" class="bl-note">هنوز پست منتشرشده‌ای وجود ندارد.</p>
+    <h1><i class="fas fa-newspaper"></i> {{ t('blog.title') }}</h1>
+    <p v-if="site.loading" class="bl-note">{{ t('loading') }}</p>
+    <p v-else-if="!site.posts.length" class="bl-note">{{ t('blog.empty') }}</p>
     <div v-else class="bl-grid">
       <RouterLink v-for="p in site.posts" :key="p.id" :to="'/post/' + p.id" class="bl-card">
         <div class="bl-head" v-if="p.image"><img :src="p.image" :alt="p.title" loading="lazy" /></div>

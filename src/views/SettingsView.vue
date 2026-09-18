@@ -115,6 +115,17 @@ function resetAll() {
   cms.resetToSeed()
   cms.toast('داده‌ها به حالت نمونه بازگشت.')
 }
+const pushBusy = ref(false)
+const pushInfo = ref('')
+async function sendPushTest() {
+  pushBusy.value = true
+  try {
+    const r = await apiFetch('/push', { method: 'GET' }).catch(() => ({ items: [], total: 0, mode: '?' }))
+    const out = await apiFetch('/push/test', { method: 'POST' })
+    pushInfo.value = `حالت ${r.mode} · اشتراک‌ها ${r.total} · ارسال ${out.sent} · خطا ${out.failed}`
+    cms.toast(out.sent ? `پوش آزمایشی به ${out.sent} دستگاه ارسال شد 🔔` : 'اشتراکی ثبت نشده یا ارسال ناموفق بود.', !out.sent)
+  } catch (e) { pushInfo.value = ''; cms.toast(e.message || 'خطا', true) } finally { pushBusy.value = false }
+}
 </script>
 
 <template>
@@ -149,6 +160,19 @@ function resetAll() {
           <span>آپتایم: <strong>{{ health.uptimeSec }}s</strong></span>
         </template>
       </div>
+      <div v-if="cms.can('payments')" style="margin-top:14px;border-top:1px solid rgba(255,255,255,.07);padding-top:12px">
+        <div class="form-group-3d"><label for="set-fee">کارمزد درگاه (٪ از مبلغ پرداختی — برای گزارش مالی خالص)</label>
+          <input id="set-fee" v-model.number="cms.settings.gatewayFeePct" type="number" min="0" max="15" step="0.5" class="cms-input" style="max-width:140px" />
+        </div>
+        <p style="font-size:.72rem;color:var(--text-muted,#9a9ab5);margin:4px 0 0">ذخیره با همان همگام‌سازی خودکار پنل انجام می‌شود.</p>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
+          <button class="cms-btn cms-btn-secondary" type="button" style="width:auto;padding:6px 14px;font-size:.78rem;margin:0" :disabled="pushBusy" @click="sendPushTest">
+            <i class="fas" :class="pushBusy ? 'fa-spinner fa-spin' : 'fa-bell'"></i> ارسال پوش آزمایشی
+          </button>
+          <span v-if="pushInfo" style="font-size:.72rem;color:#9a9ab5">{{ pushInfo }}</span>
+        </div>
+      </div>
+
       <form v-if="cms.online" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,.07); padding-top: 14px;" @submit.prevent="submitPassword">
         <h4 style="margin-bottom: 10px;"><i class="fas fa-key"></i> تغییر رمز مدیر (سمت سرور)</h4>
         <div class="field-row-2">

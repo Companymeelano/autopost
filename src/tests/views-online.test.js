@@ -156,3 +156,37 @@ describe('UsersView (online)', () => {
     expect(posts.length).toBe(1)
   })
 })
+
+describe('ReportsView (finance)', () => {
+  it('renders collected/net KPIs and the daily chart when online', async () => {
+    stubServer({
+      'GET /finance/report': () => ({
+        data: {
+          from: '2026-09-01', to: '2026-09-30', orderCount: 2, gross: 1_340_000, discounts: 50_000,
+          collected: 1_290_000, refunds: 490_000, refundCount: 1, feePct: 5, fee: 64_500, net: 1_225_500,
+          daily: [{ d: '2026-09-17', total: 850_000, n: 1 }], cancellations: [{ d: '2026-09-17', n: 1, total: 490_000 }],
+          coupons: [{ code: 'FIN15', n: 1, total: 50_000 }], byGateway: [{ gateway: 'demo', n: 2, total: 1_290_000 }], byStatus: { paid: 1, cancelled: 1 },
+        },
+      }),
+    })
+    chartCtor.mockClear()
+    const w = await mountOnline()
+    const cms = useCms()
+    cms.online = true
+    await w.vm.$router.push('/reports')
+    for (let i = 0; i < 4; i++) { await w.vm.$nextTick(); await new Promise((r) => setTimeout(r, 30)) }
+    expect(w.text()).toContain('گزارش مالی و تسویه')
+    expect(w.text()).toContain('خالص قابل تسویه')
+    expect(w.text()).toContain('FIN15')
+    expect(chartCtor).toHaveBeenCalledTimes(1)
+  })
+
+  it('offline shows server-required notice', async () => {
+    const w = await mountOnline()
+    const cms = useCms()
+    cms.online = false
+    await w.vm.$router.push('/reports')
+    await new Promise((r) => setTimeout(r, 40))
+    expect(w.text()).toContain('نیازمند اتصال سرور')
+  })
+})

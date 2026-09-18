@@ -6,6 +6,7 @@ import ToastHost from './components/ToastHost.vue'
 import ModalHost from './components/ModalHost.vue'
 import CommandPalette from './components/CommandPalette.vue'
 import SiteShell from './components/site/SiteShell.vue'
+import { setScope } from './i18n'
 
 const cms = useCms()
 const route = useRoute()
@@ -20,6 +21,7 @@ const NAV_ALL = [
   { page: 'messages', icon: 'fa-inbox', label: 'پیام‌ها و درخواست‌ها' },
   { page: 'ai', icon: 'fa-brain', label: 'تولید محتوای هوشمند (AI)' },
   { page: 'orders', icon: 'fa-receipt', label: 'مدیریت سفارش‌ها', perm: 'payments' },
+  { page: 'reports', icon: 'fa-chart-line', label: 'گزارش مالی و تسویه', perm: 'payments' },
   { page: 'payments', icon: 'fa-credit-card', label: 'پرداخت و تراکنش‌ها', perm: 'payments' },
   { page: 'audit', icon: 'fa-user-shield', label: 'گزارش ممیزی', perm: 'audit' },
   { page: 'users', icon: 'fa-users', label: 'کاربران و نقش‌ها', perm: 'users' },
@@ -39,11 +41,14 @@ const syncIcon = computed(() => (SYNC_META[cms.sync.status] || SYNC_META.idle)[1
 
 // بستن سایدبار موبایل + ریست اسکرول با هر تغییر مسیر
 watch(route, () => {
+  setScope(route.meta.site ? 'site' : 'admin')
   sidebarOpen.value = false
   const wrapper = document.getElementById('content-wrapper')
   if (wrapper) wrapper.scrollTop = 0
   window.scrollTo({ top: 0 })
 })
+
+setScope('admin')
 
 async function logout() {
   if (!window.confirm('آیا از خروج از پنل مطمئن هستید؟')) return

@@ -81,7 +81,7 @@ describe('ProductView', () => {
     stub({ '/public/site GET': () => ({ data: SITE_DATA() }) })
     const w = await mountAt('/product/2')
     expect(w.text()).toContain('لگ یوگا')
-    expect(w.text()).toContain('فقط ۲ عدد باقی مانده')
+    expect(w.text()).toContain('۲ باقی مانده!')
     expect(document.title).toContain('لگ یوگا')
     const plus = w.findAll('.qty-box button')[1]
     await plus.trigger('click') // 1→2

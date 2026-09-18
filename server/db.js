@@ -42,6 +42,9 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
       action TEXT NOT NULL, entity TEXT, detail TEXT, at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_audit_at ON audit(at DESC);
+    CREATE TABLE IF NOT EXISTS push_subs (
+      endpoint TEXT PRIMARY KEY, keys TEXT NOT NULL, created_at TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT, ref TEXT UNIQUE NOT NULL,
       buyer TEXT NOT NULL, phone TEXT NOT NULL, address TEXT NOT NULL, note TEXT,
@@ -115,6 +118,10 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
     insertLogin: db.prepare('INSERT INTO logins (username, ok, ip, at) VALUES (?,?,?,?)'),
     listLogins: db.prepare('SELECT * FROM logins ORDER BY id DESC LIMIT 50'),
     toneStats: db.prepare("SELECT detail, COUNT(*) AS n FROM audit WHERE action='ai.caption' AND at >= ? GROUP BY detail ORDER BY n DESC LIMIT 5"),
+    pushAdd: db.prepare('INSERT INTO push_subs (endpoint, keys, created_at) VALUES (?,?,?) ON CONFLICT(endpoint) DO UPDATE SET keys=excluded.keys, created_at=excluded.created_at'),
+    pushDel: db.prepare('DELETE FROM push_subs WHERE endpoint=?'),
+    pushList: db.prepare('SELECT * FROM push_subs ORDER BY created_at DESC LIMIT 200'),
+    pushCount: db.prepare('SELECT COUNT(*) AS n FROM push_subs'),
     createOrder: db.prepare('INSERT INTO orders (ref, buyer, phone, address, note, items, total, discount, payable, coupon, authority, status, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'),
     orderByRef: db.prepare('SELECT * FROM orders WHERE ref=?'),
     orderByAuth: db.prepare('SELECT * FROM orders WHERE authority=?'),
@@ -196,6 +203,37 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
     },
     touchSeed() { stmt.setKv.run('seeded', new Date().toISOString()) },
     dropSessions(username) { stmt.deleteSessionsOf.run(username) },
+    /* --- گزارش مالی (فاز ۴) --- */
+    financeReport(fromIso, toIso) {
+      const norm = (v, fb) => { if (v == null || v === '') return fb; const d = new Date(String(v)); return isNaN(d) ? fb : d }
+      const F = norm(fromIso, new Date(0)).toISOString()
+      const T = norm(toIso, new Date(Date.now() + 86400_000)).toISOString()
+      const orders = db.prepare("SELECT * FROM orders WHERE created_at >= ? AND created_at <= ? ORDER BY id DESC").all(F, T)
+      const paid = orders.filter((o) => ['paid', 'shipped'].includes(o.status))
+      const cancelledPaid = orders.filter((o) => o.status === 'cancelled' && o.ref_id)
+      const agg = {
+        from: F.slice(0, 10), to: T.slice(0, 10),
+        orderCount: paid.length,
+        gross: paid.reduce((a, o) => a + o.total, 0),
+        discounts: paid.reduce((a, o) => a + (o.discount || 0), 0),
+        collected: paid.reduce((a, o) => a + o.payable, 0),
+        refunds: cancelledPaid.reduce((a, o) => a + o.payable, 0),
+        refundCount: cancelledPaid.length,
+      }
+      agg.daily = db.prepare("SELECT substr(verified_at,1,10) AS d, SUM(amount) AS total, COUNT(*) AS n FROM transactions WHERE status='paid' AND verified_at >= ? AND verified_at <= ? GROUP BY d ORDER BY d").all(F, T)
+      agg.cancellations = db.prepare("SELECT substr(verified_at,1,10) AS d, COUNT(*) AS n, SUM(payable) AS total FROM orders WHERE status='cancelled' AND ref_id IS NOT NULL AND ref_id != '' AND verified_at >= ? AND verified_at <= ? GROUP BY d ORDER BY d").all(F, T)
+      agg.coupons = db.prepare("SELECT coupon AS code, COUNT(*) AS n, SUM(discount) AS total FROM orders WHERE coupon IS NOT NULL AND status IN ('paid','shipped') AND created_at >= ? AND created_at <= ? GROUP BY coupon ORDER BY total DESC").all(F, T)
+      agg.byGateway = db.prepare("SELECT gateway, COUNT(*) AS n, SUM(amount) AS total FROM transactions WHERE status='paid' AND verified_at >= ? AND verified_at <= ? GROUP BY gateway").all(F, T)
+      agg.byStatus = orders.reduce((m2, o) => { m2[o.status] = (m2[o.status] || 0) + 1; return m2 }, {})
+      return agg
+    },
+
+    /* --- اشتراک پوش (فاز ۴) --- */
+    pushAdd(endpoint, keysJson) { return stmt.pushAdd.run(String(endpoint), keysJson, new Date().toISOString()).changes },
+    pushRemove(endpoint) { return stmt.pushDel.run(String(endpoint)).changes },
+    pushList() { return stmt.pushList.all().map((r) => ({ ...r, keys: JSON.parse(r.keys) })) },
+    pushCount() { return stmt.pushCount.get().n },
+
     /* --- سفارش‌ها (فاز ۳) — کسر موجودی اتمیک در لحظه پرداخت --- */
     createOrder(o) {
       stmt.createOrder.run(o.ref, o.buyer, o.phone, o.address, o.note || '', JSON.stringify(o.items),

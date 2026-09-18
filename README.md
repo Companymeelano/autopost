@@ -30,6 +30,7 @@ npm run test:e2e      # Playwright (لازم: npm run build + دانلود مر�
 | ۱ | SPA ویوها + استور pinia + localStorage + مودال‌ها + ۳۹ تست |
 | ۲ | سرور production: SQLite، احراز هویت، همگام‌سازی rev/ETag، ارائه‌دهنده AI و درگاه، scheduler |
 | ۲.۵ | همزمانی مرج-سطح‌ردیف، مدیا روی دیسک، ممیزی/ورود، نقش‌ها، صف انتشار، CSV، بکاپ VACUUM، CI، PWA، پالت Ctrl+K |
+| ۴ | **اعلان Push واقعی** (VAPID + aes128gcm نیتیو) · **دوزبانه fa/en با LTR** · **گزارش مالی/تسویه** (کارمزد، استرداد، کوپن، CSV) · فاکتور چاپی/PDF · دکمه تست پوش در تنظیمات |
 | ۳ | **فروشگاه عمومی**: صفحات سایت، سبد خرید، ثبت سفارش با کسر اتمیک موجودی، درگاه دمو، پیگیری سفارش، وبلاگ، تماس، sitemap/سئو، مدیریت سفارش‌ها |
 
 ## معماری داده
@@ -42,6 +43,6 @@ npm run test:e2e      # Playwright (لازم: npm run build + دانلود مر�
 `admin` (کل) · `editor` (محصول/پست/مدیا/AI/صف) · `finance` (کوپن/پیام/درخواست/پرداخت‌ها/سفارش‌ها/ممیزی) — مجوزها سمت سرور روی PUT state (diff مجموعه‌ها) و همه اندپوینت‌ها اعمال می‌شود.
 
 ## اندپوینت‌های عمومی سایت
-`GET /api/public/site` · `POST /api/public/orders` · `GET /api/public/orders/:ref` · `GET /api/public/orders/return` (وب‌تک درگاه) · `GET /gateway?ref=` (صفحه درگاه دمو) · `GET /api/public/pricing|products|coupons/verify|requests` · `GET /sitemap.xml|/robots.txt` — همگی با rate-limit و احترام به حالت نگهداری.
+`GET /api/public/site` · `POST /api/public/orders` · `GET/POST /api/push/*` (اشتراک/تست) · `GET /api/public/orders/:ref` · `GET /api/public/orders/return` (وب‌تک درگاه) · `GET /gateway?ref=` (صفحه درگاه دمو) · `GET /api/public/pricing|products|coupons/verify|requests` · `GET /sitemap.xml|/robots.txt` — همگی با rate-limit و احترام به حالت نگهداری.
 
 مستند عملیاتی/استقرار: `README-DEPLOY.md` · متغیرها: `.env.example`

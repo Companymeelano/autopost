@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>199/199</span>
+                <span class='fraction'>222/222</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>199/199</span>
+                <span class='fraction'>222/222</span>
             </div>
         
             
@@ -285,7 +285,31 @@
 <a name='L220'></a><a href='#L220'>220</a>
 <a name='L221'></a><a href='#L221'>221</a>
 <a name='L222'></a><a href='#L222'>222</a>
-<a name='L223'></a><a href='#L223'>223</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -402,6 +426,17 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -436,6 +471,19 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -624,6 +672,17 @@ function resetAll() {
   cms.resetToSeed()
   cms.toast('داده‌ها به حالت نمونه بازگشت.')
 }
+const pushBusy = ref(false)
+const pushInfo = ref('')
+async function sendPushTest() {
+  pushBusy.value = true
+  try {
+    const r = await apiFetch('/push', { method: 'GET' }).catch(() =&gt; ({ items: [], total: 0, mode: '?' }))
+    const out = await apiFetch('/push/test', { method: 'POST' })
+    pushInfo.value = `حالت ${r.mode} · اشتراک‌ها ${r.total} · ارسال ${out.sent} · خطا ${out.failed}`
+    cms.toast(out.sent ? `پوش آزمایشی به ${out.sent} دستگاه ارسال شد 🔔` : 'اشتراکی ثبت نشده یا ارسال ناموفق بود.', !out.sent)
+  } catch (e) { pushInfo.value = ''; cms.toast(e.message || 'خطا', true) } finally { pushBusy.value = false }
+}
 &lt;/script&gt;
 &nbsp;
 &lt;template&gt;
@@ -658,6 +717,19 @@ function resetAll() {
           &lt;span&gt;آپتایم: &lt;strong&gt;{{ health.uptimeSec }}s&lt;/strong&gt;&lt;/span&gt;
         &lt;/template&gt;
       &lt;/div&gt;
+      &lt;div v-if="cms.can('payments')" style="margin-top:14px;border-top:1px solid rgba(255,255,255,.07);padding-top:12px"&gt;
+        &lt;div class="form-group-3d"&gt;&lt;label for="set-fee"&gt;کارمزد درگاه (٪ از مبلغ پرداختی — برای گزارش مالی خالص)&lt;/label&gt;
+          &lt;input id="set-fee" v-model.number="cms.settings.gatewayFeePct" type="number" min="0" max="15" step="0.5" class="cms-input" style="max-width:140px" /&gt;
+        &lt;/div&gt;
+        &lt;p style="font-size:.72rem;color:var(--text-muted,#9a9ab5);margin:4px 0 0"&gt;ذخیره با همان همگام‌سازی خودکار پنل انجام می‌شود.&lt;/p&gt;
+        &lt;div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap"&gt;
+          &lt;button class="cms-btn cms-btn-secondary" type="button" style="width:auto;padding:6px 14px;font-size:.78rem;margin:0" :disabled="pushBusy" @click="sendPushTest"&gt;
+            &lt;i class="fas" :class="pushBusy ? 'fa-spinner fa-spin' : 'fa-bell'"&gt;&lt;/i&gt; ارسال پوش آزمایشی
+          &lt;/button&gt;
+          &lt;span v-if="pushInfo" style="font-size:.72rem;color:#9a9ab5"&gt;{{ pushInfo }}&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+&nbsp;
       &lt;form v-if="cms.online" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,.07); padding-top: 14px;" @submit.prevent="submitPassword"&gt;
         &lt;h4 style="margin-bottom: 10px;"&gt;&lt;i class="fas fa-key"&gt;&lt;/i&gt; تغییر رمز مدیر (سمت سرور)&lt;/h4&gt;
         &lt;div class="field-row-2"&gt;
@@ -736,7 +808,7 @@ function resetAll() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-18T16:56:46.724Z
+                at 2026-09-18T17:31:03.345Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

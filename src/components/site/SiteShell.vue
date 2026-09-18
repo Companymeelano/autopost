@@ -1,21 +1,45 @@
 <script setup>
 // پوسته عمومی سایت (فاز ۳) — header + nav + badge سبد + footer
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCart } from '../../stores/cart'
 import { useSite } from '../../stores/site'
 import { toFa } from '../../utils/format'
+import { useI18n } from '../../i18n'
 
 const cart = useCart()
 const site = useSite()
 const route = useRoute()
+const { t, lang, toggle } = useI18n()
 const nav = [
-  { to: '/', label: 'خانه و فروشگاه' },
-  { to: '/blog', label: 'وبلاگ' },
-  { to: '/contact', label: 'تماس با ما' },
+  { to: '/', key: 'nav.home' },
+  { to: '/blog', key: 'nav.blog' },
+  { to: '/contact', key: 'nav.contact' },
 ]
 const cartCount = computed(() => cart.count)
 onMounted(() => site.load())
+
+// ——— فاز ۴: اعلان پوش ———
+const pushState = ref(false)
+const pushLabel = computed(() => pushState.value ? '✓' : t('push.on'))
+async function enablePush() {
+  if (pushState.value) return
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) { cmsToast(t('push.no'), true); return }
+    if (Notification.permission === 'denied') { cmsToast(t('push.denied'), true); return }
+    const perm = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission()
+    if (perm !== 'granted') return cmsToast(t('push.denied'), true)
+    const reg = await navigator.serviceWorker.ready
+    const { data } = await fetch('/api/push/public-key').then((r) => r.json())
+    if (!data?.key && !data?.enabled) return cmsToast(t('push.no'), true)
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: data.key })
+    const j = sub.toJSON()
+    await fetch('/api/push/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ endpoint: j.endpoint, keys: j.keys }) })
+    pushState.value = true
+    cmsToast(t('push.ok'))
+  } catch (e) { cmsToast(t('push.no'), true) }
+}
+function cmsToast(msg, bad) { import('../../stores/cms').then(({ useCms }) => useCms().toast(msg, bad)) }
 </script>
 
 <template>
@@ -23,9 +47,11 @@ onMounted(() => site.load())
     <header class="site-header">
       <RouterLink to="/" class="site-logo"><i class="fas fa-bolt"></i> {{ site.settings.siteName || 'پناه‌فیت' }}</RouterLink>
       <nav class="site-nav" aria-label="ناوبری اصلی">
-        <RouterLink v-for="n in nav" :key="n.to" :to="n.to" :class="{ on: route.path === n.to }">{{ n.label }}</RouterLink>
+        <RouterLink v-for="n in nav" :key="n.to" :to="n.to" :class="{ on: route.path === n.to }">{{ t(n.key) }}</RouterLink>
       </nav>
       <div class="site-actions">
+        <button class="site-bell" :title="pushLabel" @click="enablePush"><i class="fas fa-bell"></i></button>
+        <button class="site-lang" @click="toggle()">{{ t('lang.switch') }}</button>
         <RouterLink to="/checkout" class="site-cart" :title="'سبد خرید: ' + cartCount + ' قلم'">
           <i class="fas fa-shopping-cart"></i>
           <span v-if="cartCount" class="cart-badge">{{ toFa(cartCount) }}</span>
@@ -50,10 +76,10 @@ onMounted(() => site.load())
       </div>
       <div>
         <h4>دسترسی سریع</h4>
-        <p><RouterLink to="/checkout">سبد خرید و پرداخت</RouterLink></p>
-        <p><RouterLink to="/login">ورود پنل مدیریت</RouterLink></p>
+        <p><RouterLink to="/checkout">{{ t('ft.shop') }}</RouterLink></p>
+        <p><RouterLink to="/login">{{ t('ft.login') }}</RouterLink></p>
       </div>
-      <p class="site-copy">© {{ new Date().getFullYear() }} پناه‌فیت — توان و تناسب</p>
+      <p class="site-copy">{{ t('ft.rights') }} · {{ new Date().getFullYear() }}</p>
     </footer>
   </div>
 </template>
@@ -71,6 +97,8 @@ onMounted(() => site.load())
 .site-cart { position: relative; color: #eaeaea; text-decoration: none; font-size: 1.05rem; padding: 8px 12px; border: 1px solid #2a2a44; border-radius: 10px; transition: all .2s; }
 .site-cart:hover { border-color: #00ffaa; box-shadow: 0 0 14px rgba(0, 255, 170, 0.25); }
 .cart-badge { position: absolute; top: -7px; left: -7px; background: #ff0055; color: #fff; font-size: .66rem; font-weight: 800; min-width: 18px; height: 18px; border-radius: 9px; display: grid; place-items: center; padding: 0 4px; box-shadow: 0 0 10px rgba(255, 0, 85, 0.6); }
+.site-bell, .site-lang { background: transparent; border: 1px solid #2a2a44; color: #b9b9d0; border-radius: 10px; padding: 8px 11px; cursor: pointer; font: inherit; font-size: .8rem; }
+.site-bell:hover, .site-lang:hover { color: #00ffaa; border-color: rgba(0, 255, 170, 0.4); }
 .site-admin { color: #9a9ab5; text-decoration: none; padding: 8px 11px; border-radius: 10px; border: 1px solid transparent; }
 .site-admin:hover { color: #00ffaa; border-color: rgba(0, 255, 170, 0.3); }
 .site-main { flex: 1; width: min(1180px, 94vw); margin: 0 auto; padding: 26px 0 60px; }

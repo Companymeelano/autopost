@@ -4,6 +4,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSite } from '../../stores/site'
 import { setSeo } from '../../utils/seo'
+import { useI18n } from '../../i18n'
 
 const site = useSite()
 const route = useRoute()
@@ -13,20 +14,21 @@ onMounted(async () => {
   if (p) setSeo(p.title + ' — مجله پناه‌فیت', String(p.body || '').slice(0, 150), p.image)
 })
 const post = computed(() => site.postById(route.params.id))
+const { t } = useI18n()
 </script>
 
 <template>
   <section v-if="!post" class="ps-empty">
-    <p>این نوشته یافت نشد.</p>
+    <p>{{ t('post.notfound') }}</p>
     <RouterLink to="/blog">بازگشت به وبلاگ</RouterLink>
   </section>
   <article v-else class="ps">
-    <p class="ps-crumb"><RouterLink to="/blog">مجله</RouterLink> / {{ post.title }}</p>
+    <p class="ps-crumb"><RouterLink to="/blog">{{ t('nav.blog') }}</RouterLink> / {{ post.title }}</p>
     <h1>{{ post.title }}</h1>
     <p class="ps-meta"><i class="fas fa-user-pen"></i> {{ post.author || 'تیم پناه‌فیت' }} · <i class="fas fa-calendar-day"></i> {{ post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('fa-IR') : post.date }}</p>
     <img v-if="post.image" class="ps-img" :src="post.image" :alt="post.title" />
     <div class="ps-body"><p v-for="(par, i) in String(post.body || '').split(/\n+/)" :key="i">{{ par }}</p></div>
-    <RouterLink to="/blog" class="ps-back">→ همه نوشته‌ها</RouterLink>
+    <RouterLink to="/blog" class="ps-back">{{ t('post.back') }}</RouterLink>
   </article>
 </template>
 

@@ -17,6 +17,7 @@ import { openDb } from './db.js'
 import { generateCaption, createPayment, verifyPayment, aiSource, paymentSource } from './services.js'
 import { createMediaStore } from './media.js'
 import { createScheduler } from './scheduler.js'
+import { createPushService } from './push.js'
 import { ROLE_PERMS, ROLE_LABELS, permsFor, editableColsFor } from './roles.js'
 import { defaultState, COLL_KEYS, VALID_CATS } from '../src/data/seeds.js'
 import { validateProduct, validatePost, validateCoupon, validateLogin } from '../src/utils/validation.js'
@@ -29,6 +30,10 @@ const DB = openDb(ENV.DATA_DIR === 'memory' ? ':memory:' : join(ROOT, ENV.DATA_D
   { username: ENV.ADMIN_USER || 'admin', password: ENV.ADMIN_PASS || '12345' })
 const MEDIA = createMediaStore(ENV.DATA_DIR === 'memory' ? '/tmp/panahfit-media-test' : join(ROOT, ENV.DATA_DIR || 'data', 'media'))
 const SCHED = createScheduler({ DB, env: ENV, audit: DB.audit })
+const PUSH = createPushService(ENV, DB)
+/** ارسال fire-and-forget؛ خطا هرگز مسیر کاربر را نمی‌شکند */
+function siteNotify(payload) { PUSH.notify(payload).then((o) => console.log('[push-hook]', JSON.stringify(o))).catch((e) => console.log('[push-hook-err]', e.message)) }
+
 
 const loginLimiter = rateLimiter({ max: 8, windowMs: 60_000 })
 const publicLimiter = rateLimiter({ max: 30, windowMs: 60_000 })
@@ -157,7 +162,7 @@ async function handle(req, res) {
     return sendJsonSafe(res, 200, {
       ok: true, app: 'panahfit-api', version: 3,
       ai: aiSource(ENV), payment: paymentSource(ENV),
-      scheduler: IS_TEST ? 'off' : 'on', uptimeSec: Math.round(process.uptime()), time: new Date().toISOString(),
+      scheduler: IS_TEST ? 'off' : 'on', push: `${PUSH.mode}:${DB.pushCount()}`, uptimeSec: Math.round(process.uptime()), time: new Date().toISOString(),
     })
   }
   if (path === '/api/public/pricing' && method === 'GET') {
@@ -195,12 +200,14 @@ async function handle(req, res) {
     st.requests.unshift({ id, type: 'فرم تماس', subject, user, date: new Date().toLocaleString('fa-IR'), status: 'new', body })
     DB.replaceState(st); DB.bumpRev()
     DB.audit('site', 'request.create', `req#${id}`, subject.slice(0, 60))
+    siteNotify({ title: '📮 پیام جدید از سایت', body: `${user}: ${subject}`.slice(0, 120), url: '/#/messages', tag: 'request' })
     return sendJsonSafe(res, 201, { ok: true, id })
   }
 
 
   /* ---- فاز ۳: صفحات عمومی سایت ---- */
   if (path === '/gateway' && method === 'GET') return gatewayPage(url.searchParams.get('ref') || '', req, res)
+  if (path.startsWith('/invoice/') && method === 'GET') return invoicePage(path.slice('/invoice/'.length), req, res)
   if (path === '/sitemap.xml' && method === 'GET') return sitemapXml(req, res)
   if (path === '/robots.txt' && method === 'GET') {
     const base = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || 'localhost'}`
@@ -286,6 +293,7 @@ async function handle(req, res) {
             if (v.ok) DB.markTx(order.authority, v.refId, true)
             if (order.coupon) redeemCoupon(order.coupon)
             DB.audit('site', 'order.paid', ref, `ref:${v.refId || 'demo'}`)
+            siteNotify({ title: '⚡ سفارش پرداخت شد', body: `${ref} • ${(order.buyer || '')}`, url: '/#/order/' + encodeURIComponent(ref), tag: 'order' })
           } else if (settled.error === 'insufficient_stock') {
             DB.failOrder(ref); DB.markTx(order.authority, null, false)
             DB.audit('site', 'order.stockfail', ref, settled.title || '')
@@ -337,6 +345,22 @@ async function handle(req, res) {
 
   /* ---- احراز نشست ---- */
   const { [SESSION_COOKIE]: token } = parseCookies(req)
+  /* ---- فاز ۴: پوش نوتیفیکیشن ---- */
+  if (path === '/api/push/public-key' && method === 'GET') {
+    return sendJsonSafe(res, 200, { enabled: true, mode: PUSH.mode, key: PUSH.publicKey() })
+  }
+  if (path === '/api/push/subscribe' && method === 'POST') {
+    if (!publicLimiter(req.socket.remoteAddress || 'x')) throw httpErr(429, 'درخواست‌های زیاد؛ کمی بعد تلاش کنید.')
+    const b = await readBody(req)
+    PUSH.subscribe(b.endpoint, b.keys)
+    DB.audit('site', 'push.subscribe', '', String(b.endpoint).slice(0, 80))
+    return sendJsonSafe(res, 201, { ok: true, subs: DB.pushCount() })
+  }
+  if (path === '/api/push/unsubscribe' && method === 'POST') {
+    const b = await readBody(req)
+    const r = PUSH.unsubscribe(b.endpoint)
+    return sendJsonSafe(res, 200, r)
+  }
   const uname = DB.sessionUser(token)
   if (!uname) throw httpErr(401, 'برای این عملیات باید وارد شوید.')
   const user = DB.findUser(uname)
@@ -592,6 +616,49 @@ async function handle(req, res) {
     }
   }
 
+
+  if (path === '/api/push' && method === 'GET') {
+    requirePerm(user, 'state:settings')
+    return sendJsonSafe(res, 200, { mode: PUSH.mode, items: PUSH.list(), total: DB.pushCount() })
+  }
+  if (path === '/api/push/test' && method === 'POST') {
+    requirePerm(user, 'state:settings')
+    const out = await PUSH.notify({ title: '🧪 آزمون پوش پناه‌فیت', body: 'اگر این را می‌بینید، زنجیره VAPID+رمزنگاری سالم است.', url: '/#/settings', tag: 'test' })
+    DB.audit(user.username, 'push.test', '', JSON.stringify(out))
+    return sendJsonSafe(res, 200, out)
+  }
+
+  /* ---- فاز ۴ (ادمین): پوش + گزارش مالی ---- */
+  if (path === '/api/push' && method === 'GET') {
+    requirePerm(user, 'state:settings')
+    return sendJsonSafe(res, 200, { mode: PUSH.mode, items: PUSH.list(), total: DB.pushCount() })
+  }
+  if (path === '/api/push/test' && method === 'POST') {
+    requirePerm(user, 'state:settings')
+    const out = await PUSH.notify({ title: '🧪 آزمون پوش پناه‌فیت', body: 'اگر این را می‌بینید، زنجیره VAPID+رمزنگاری سالم است.', url: '/#/settings', tag: 'test' })
+    DB.audit(user.username, 'push.test', '', JSON.stringify(out))
+    return sendJsonSafe(res, 200, out)
+  }
+  if (path === '/api/finance/report' && method === 'GET') {
+    requirePerm(user, 'payments')
+    const st = DB.getState()
+    const feePct = Math.min(15, Math.max(0, Number(st.settings.gatewayFeePct) || 0))
+    const rep = DB.financeReport(url.searchParams.get('from'), url.searchParams.get('to'))
+    rep.feePct = feePct
+    rep.fee = Math.round((rep.collected * feePct) / 100)
+    rep.net = rep.collected - rep.fee
+    if (url.searchParams.get('format') === 'csv') {
+      const head = 'date,paid_count,paid_total,cancel_count,cancel_refund'
+      const cancels = new Map(rep.cancellations.map((c) => [c.d, c]))
+      const lines = rep.daily.map((d) => { const c = cancels.get(d.d) || { n: 0, total: 0 }; cancels.delete(d.d); return `${d.d},${d.n},${d.total},${c.n},${c.total}` })
+      for (const [, c] of cancels) lines.push(`${c.d},0,0,${c.n},${c.total}`)
+      const csv = '\uFEFF' + [head, ...lines].join('\n')
+      res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="panahfit-finance-${rep.from}_${rep.to}.csv"`, ...SECURITY_HEADERS })
+      return res.end(csv)
+    }
+    return sendJsonSafe(res, 200, rep)
+  }
+
   /* ---- بکاپ ---- */
   if (path === '/api/backup/export' && method === 'GET') {
     const body = JSON.stringify({ app: 'panahfit-cms', version: 3, exportedAt: new Date().toISOString(), rev: DB.getRev(), ...DB.getState() }, null, 2)
@@ -656,6 +723,36 @@ function gatewayPage(ref, req, res) {
     <div class="btns"><a class="ok" href="${back}ok">پرداخت موفق</a><a class="no" href="${back}fail" rel="nofollow">عملیات ناموفق</a></div>
     <p style="font-size:.68rem;color:#666;margin-top:14px">این درگاه نمایشی است؛ در محیط production با زرین‌پال واقعی جایگزین می‌شود.</p></div></body></html>`)
 }
+function invoicePage(ref, req, res) {
+  const o = /^PF-[A-Z0-9-]{4,}$/i.test(String(ref)) ? DB.orderByRef(String(ref)) : null
+  if (!o) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('invoice not found') }
+  const st = DB.getState().settings
+  const rows = o.items.map((i, n) => `<tr><td>${n + 1}</td><td>${esc(i.title)}</td><td>${fmtToman(i.qty)}</td><td>${fmtToman(i.price)}</td><td>${fmtToman(i.price * i.qty)}</td></tr>`).join('')
+  const dateFa = new Date(o.verified_at || o.created_at).toLocaleDateString('fa-IR', { dateStyle: 'full' })
+  const pay = o.status === 'paid' || o.status === 'shipped' ? 'پرداخت‌شده ✅' : o.status === 'cancelled' ? 'لغوشده ❌' : 'پرداخت‌نشده ⏳'
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, max-age=60',
+    'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'" })
+  res.end(`<!doctype html><html dir="rtl" lang="fa"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>فاکتور ${esc(o.ref)} — پناه‌فیت</title><style>
+  @page { size: A4; margin: 18mm } body{font-family:Vazirmatn,Tahoma,sans-serif;background:#f4f4f8;color:#16162a;margin:0}
+  .sheet{max-width:720px;margin:26px auto;background:#fff;border-radius:14px;padding:30px 34px;box-shadow:0 8px 30px rgba(20,20,50,.14)}
+  h1{font-size:1.1rem;margin:0 0 2px} .muted{color:#6a6a85;font-size:.78rem} table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.85rem}
+  th{background:#101024;color:#fff;padding:8px;text-align:right;border-radius:6px 6px 0 0} td{padding:8px;border-bottom:1px solid #e7e7f0}
+  .tot{display:flex;flex-direction:column;gap:6px;align-items:flex-start;font-size:.86rem} .tot b{color:#0b7a4d}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:2px solid #101024;padding-bottom:14px;margin-bottom:14px}
+  .btn{display:inline-block;margin:14px auto 0;background:#101024;color:#fff;text-decoration:none;padding:10px 22px;border-radius:9px;border:0;font:inherit;cursor:pointer}
+  @media print { body{background:#fff} .sheet{box-shadow:none;margin:0;max-width:none} .btn{display:none} }
+  </style></head><body><div class="sheet">
+  <div class="top"><div><h1>⚡ پناه‌فیت</h1><p class="muted">${esc(st.siteName || 'فروشگاه لباس ورزشی')}<br>${esc(st.phone || '')} · ${esc(st.address || '')}</p></div>
+  <div style="text-align:left"><p class="muted">شماره فاکتور</p><b>${esc(o.ref)}</b><br><p class="muted">تاریخ</p><span>${dateFa}</span></div></div>
+  <table><thead><tr><th>#</th><th>شرح کالا</th><th>تعداد</th><th>واحد (تومان)</th><th>جمع (تومان)</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="tot"><span>جمع کل: <b>${fmtToman(o.total)}</b> تومان</span>
+  ${o.discount ? `<span>تخفیف${o.coupon ? ' (کد ' + esc(o.coupon) + ')' : ''}: −${fmtToman(o.discount)} تومان</span>` : ''}
+  <span>وضعیت: ${pay}</span>
+  <span style="font-size:1rem">قابل پرداخت: <b>${fmtToman(o.status === 'waiting' ? o.payable : o.payable)} تومان</b></span>
+  ${o.ref_id ? `<span class="muted">کد رهگیری: ${esc(o.ref_id)}</span>` : ''}</div>
+  <p class="muted" style="margin-top:18px">خریدار: ${esc(o.buyer)} · ${esc(o.phone)}<br>${esc(o.address)}</p>
+  </div><center><button class="btn" onclick="window.print()">🖨 چاپ یا ذخیره PDF</button></center></body></html>`)
+}
 function sitemapXml(req, res) {
   const st = DB.getState()
   const base = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || 'localhost'}`
@@ -671,7 +768,7 @@ const DIST = join(ROOT, 'dist')
 const server = createServer(async (req, res) => {
   try {
     const p = String(req.url || '/').split('?')[0]
-    const SPECIAL = p === '/gateway' || p === '/sitemap.xml' || p === '/robots.txt'
+    const SPECIAL = p === '/gateway' || p === '/sitemap.xml' || p === '/robots.txt' || p.startsWith('/invoice/')
     if (!p.startsWith('/api/') && !p.startsWith('/media/') && !SPECIAL) {
       if (existsSync(DIST) && (req.method === 'GET' || req.method === 'HEAD')) {
         return serveStatic(DIST, req.url || '/', res, CSP)
@@ -696,7 +793,7 @@ const server = createServer(async (req, res) => {
 let schedTimer = null
 let sweepTimer = null
 if (!IS_TEST) {
-  schedTimer = setInterval(() => { SCHED.runOnce('cron').catch(() => {}) }, 30_000)
+  schedTimer = setInterval(() => { SCHED.runOnce('cron').then((r) => { for (const d of r?.done || []) if (d.ok) siteNotify({ title: '📣 پست منتشر شد', body: 'پست زمان‌بندی‌شده با موفقیت منتشر شد.', url: '/#/posts', tag: 'post' }) }).catch(() => {}) }, 30_000)
   sweepTimer = setInterval(() => { try { MEDIA.sweep(referencedMediaPaths()) } catch { /* noop */ } }, 6 * 3600_000)
 }
 
@@ -708,4 +805,4 @@ if (!IS_TEST) {
   })
 }
 
-export { server, handle, assertState, DB, MEDIA, SCHED, stopTimers, checkCoupon }
+export { server, handle, assertState, DB, MEDIA, SCHED, stopTimers, checkCoupon, PUSH }

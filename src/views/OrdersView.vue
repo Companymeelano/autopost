@@ -81,6 +81,7 @@ onMounted(refresh)
               <td><span class="st-chip" :style="{ color: (STATUS[o.status] || ['', '#9a9ab5'])[1] }"><i class="fas fa-circle" style="font-size:.4rem"></i> {{ (STATUS[o.status] || [o.status])[0] }}</span></td>
               <td>{{ new Date(o.created_at).toLocaleString('fa-IR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</td>
               <td @click.stop>
+                <a class="cms-btn-mini" :href="'/invoice/' + o.ref" target="_blank" title="فاکتور (چاپ/PDF)" @click.stop><i class="fas fa-file-invoice"></i></a>
                 <button v-if="o.status === 'paid'" class="cms-btn-mini" :disabled="busy === o.ref + 'ship'" title="علامت‌گذاری ارسال" @click="act(o, 'ship')"><i class="fas fa-truck-fast"></i></button>
                 <button v-if="['waiting', 'paid'].includes(o.status)" class="cms-btn-mini danger" :disabled="busy === o.ref + 'cancel'" title="لغو و بازگشت موجودی" @click="act(o, 'cancel')"><i class="fas fa-ban"></i></button>
                 <span v-if="busy === o.ref + 'ship' || busy === o.ref + 'cancel'"><i class="fas fa-spinner fa-spin"></i></span>
@@ -117,6 +118,8 @@ onMounted(refresh)
 .orders-notice { color: #ffd166; font-size: .84rem; }
 .cms-btn-mini { background: transparent; border: 1px solid #2a2a44; color: #b9b9d0; border-radius: 8px; width: 30px; height: 30px; cursor: pointer; margin-inline-start: 4px; }
 .cms-btn-mini:hover { color: #00ffaa; border-color: #00ffaa; }
+.cms-table .cms-btn-mini { display: inline-grid; place-items: center; text-decoration: none; }
+.cms-table td { white-space: nowrap; }
 .cms-btn-mini.danger:hover { color: #ff5a7a; border-color: #ff5a7a; }
 .detail-row td { background: #0d0d18; cursor: default; }
 .detail-grid { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr 1fr; gap: 14px; font-size: .78rem; color: #b9b9d0; padding: 6px 4px; }
