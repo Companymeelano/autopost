@@ -1,0 +1,228 @@
+// ============================================================================
+// لایه دیتابیس — node:sqlite داخلی (بدون وابستگی خارجی)
+// هر موجود در جدول records به‌صورت سطر JSON (coll + id + pos) ذخیره می‌شود؛
+// تنظیمات/rev در kv؛ کاربران/نشست‌ها/تراکنش‌ها/ممیزی/ورودها جداول مستقل‌اند.
+// ============================================================================
+import { createRequire } from 'node:module'
+//绕过 — Vite/vitest در externalize کردن node:sqlite مشکل دارد؛ require مستقیم پایدار است
+const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite')
+import { mkdirSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { defaultState, COLL_KEYS } from '../src/data/seeds.js'
+import { hashPassword, newToken } from './lib.js'
+
+const DAY = 24 * 3600 * 1000
+
+export function openDb(dbPath, adminCreds = { username: 'admin', password: '12345' }) {
+  if (dbPath !== ':memory:') mkdirSync(dirname(dbPath), { recursive: true })
+  const db = new DatabaseSync(dbPath)
+  db.exec('PRAGMA journal_mode = WAL;')
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS records (
+      coll TEXT NOT NULL, id INTEGER NOT NULL, data TEXT NOT NULL, pos INTEGER NOT NULL,
+      PRIMARY KEY (coll, id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_records_coll ON records(coll, pos);
+    CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS users (
+      username TEXT PRIMARY KEY, passhash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'admin',
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sessions (
+      token TEXT PRIMARY KEY, username TEXT NOT NULL, expires_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, authority TEXT UNIQUE NOT NULL,
+      amount INTEGER NOT NULL, description TEXT, status TEXT NOT NULL,
+      ref_id TEXT, gateway TEXT NOT NULL, coupon TEXT,
+      created_at TEXT NOT NULL, verified_at TEXT
+    );
+    CREATE TABLE IF NOT EXISTS audit (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL,
+      action TEXT NOT NULL, entity TEXT, detail TEXT, at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_audit_at ON audit(at DESC);
+    CREATE TABLE IF NOT EXISTS logins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL,
+      ok INTEGER NOT NULL, ip TEXT, at TEXT NOT NULL
+    );
+  `)
+  // مهاجرت ملایم برای دیتابیس‌های فاز قبل
+  try { db.exec('ALTER TABLE transactions ADD COLUMN coupon TEXT') } catch { /* موجود */ }
+  try { db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'") } catch { /* موجود */ }
+
+  // --- seed یک‌باره ---
+  const seeded = db.prepare("SELECT v FROM kv WHERE k='seeded'").get()
+  if (!seeded) {
+    const s = defaultState()
+    const ins = db.prepare('INSERT INTO records (coll, id, data, pos) VALUES (?,?,?,?)')
+    for (const key of COLL_KEYS) {
+      s[key].forEach((row, i) => ins.run(key, Number(row.id) || i + 1, JSON.stringify(row), i))
+    }
+    db.prepare("INSERT INTO kv (k, v) VALUES ('settings', ?)").run(JSON.stringify(s.settings))
+    db.prepare("INSERT INTO kv (k, v) VALUES ('seeded', '1')").run()
+    db.prepare("INSERT INTO kv (k, v) VALUES ('rev', '1')").run()
+  }
+  if (!db.prepare('SELECT username FROM users LIMIT 1').get()) {
+    db.prepare('INSERT INTO users (username, passhash, role, created_at) VALUES (?,?,?,?)')
+      .run(adminCreds.username, hashPassword(adminCreds.password), 'admin', new Date().toISOString())
+    console.log(`[db] کاربر مدیر ساخته شد: ${adminCreds.username} (رمز پیش‌فرض را تغییر دهید)`)
+    // دو حساب نمایشی برای حالت dev نقش‌ها (با EDITOR_PASS/FINANCE_PASS قابل تغییر)
+    if (process.env.PF_TEST === '1' || process.env.SEED_DEMO_USERS === '1') {
+      for (const [u, p, role] of [['editor', 'editor123', 'editor'], ['finance', 'finance123', 'finance']]) {
+        try { db.prepare('INSERT INTO users (username, passhash, role, created_at) VALUES (?,?,?,?)').run(u, hashPassword(p), role, new Date().toISOString()) } catch { /* تکراری */ }
+      }
+    }
+  }
+
+  const stmt = {
+    list: db.prepare('SELECT data FROM records WHERE coll=? ORDER BY pos'),
+    getRow: db.prepare('SELECT rowid AS rid, data FROM records WHERE coll=? AND id=?'),
+    updateRow: db.prepare('UPDATE records SET data=? WHERE coll=? AND id=?'),
+    replaceDel: db.prepare('DELETE FROM records WHERE coll=?'),
+    replaceIns: db.prepare('INSERT INTO records (coll, id, data, pos) VALUES (?,?,?,?)'),
+    getKv: db.prepare('SELECT v FROM kv WHERE k=?'),
+    setKv: db.prepare('INSERT INTO kv (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v'),
+    findUser: db.prepare('SELECT * FROM users WHERE username=?'),
+    listUsers: db.prepare('SELECT username, role, created_at FROM users ORDER BY created_at'),
+    insertUser: db.prepare('INSERT INTO users (username, passhash, role, created_at) VALUES (?,?,?,?)'),
+    updateUserRole: db.prepare('UPDATE users SET role=? WHERE username=?'),
+    updateUserPass: db.prepare('UPDATE users SET passhash=? WHERE username=?'),
+    deleteUser: db.prepare('DELETE FROM users WHERE username=?'),
+    deleteSessionsOf: db.prepare('DELETE FROM sessions WHERE username=?'),
+    insertSession: db.prepare('INSERT INTO sessions (token, username, expires_at) VALUES (?,?,?)'),
+    getSession: db.prepare('SELECT * FROM sessions WHERE token=?'),
+    delSession: db.prepare('DELETE FROM sessions WHERE token=?'),
+    pruneSessions: db.prepare('DELETE FROM sessions WHERE expires_at < ?'),
+    insertTx: db.prepare('INSERT INTO transactions (authority, amount, description, status, gateway, coupon, created_at) VALUES (?,?,?,?,?,?,?)'),
+    getTx: db.prepare('SELECT * FROM transactions WHERE authority=?'),
+    verifyTx: db.prepare("UPDATE transactions SET status='paid', ref_id=?, verified_at=? WHERE authority=? AND status='waiting'"),
+    failTx: db.prepare("UPDATE transactions SET status='failed', verified_at=? WHERE authority=? AND status='waiting'"),
+    listTx: db.prepare('SELECT * FROM transactions ORDER BY id DESC LIMIT 50'),
+    paidInRange: db.prepare("SELECT * FROM transactions WHERE status='paid' AND verified_at >= ?"),
+    insertAudit: db.prepare('INSERT INTO audit (username, action, entity, detail, at) VALUES (?,?,?,?,?)'),
+    listAudit: db.prepare('SELECT * FROM audit ORDER BY id DESC LIMIT ? OFFSET ?'),
+    countAudit: db.prepare('SELECT COUNT(*) AS n FROM audit'),
+    insertLogin: db.prepare('INSERT INTO logins (username, ok, ip, at) VALUES (?,?,?,?)'),
+    listLogins: db.prepare('SELECT * FROM logins ORDER BY id DESC LIMIT 50'),
+    toneStats: db.prepare("SELECT detail, COUNT(*) AS n FROM audit WHERE action='ai.caption' AND at >= ? GROUP BY detail ORDER BY n DESC LIMIT 5"),
+    couponRows: db.prepare('SELECT id, data FROM records WHERE coll=\'coupons\' ORDER BY pos'),
+    couponSet: db.prepare('UPDATE records SET data=? WHERE coll=\'coupons\' AND id=?'),
+  }
+
+  const getRev = () => Number(stmt.getKv.get('rev')?.v ?? 1)
+
+  return {
+    raw: db,
+    getRev,
+    bumpRev() { const n = getRev() + 1; stmt.setKv.run('rev', String(n)); return n },
+
+    /** کل وضعیت CMS (همه مجموعه‌ها + تنظیمات) */
+    getState() {
+      const out = {}
+      for (const key of COLL_KEYS) out[key] = stmt.list.all(key).map((r) => JSON.parse(r.data))
+      out.settings = JSON.parse(stmt.getKv.get('settings')?.v ?? 'null') ?? defaultState().settings
+      return out
+    },
+
+    /** جایگزینی اتمیک همه مجموعه‌ها + تنظیمات (هماتای PUT /api/state) */
+    replaceState(next) {
+      db.exec('BEGIN')
+      try {
+        for (const key of COLL_KEYS) {
+          stmt.replaceDel.run(key)
+          ;(next[key] || []).forEach((row, i) => {
+            const rid = Number.isInteger(Number(row.id)) && Number(row.id) > 0 ? Number(row.id) : i + 1
+            stmt.replaceIns.run(key, rid, JSON.stringify(row), i)
+          })
+        }
+        if (next.settings) stmt.setKv.run('settings', JSON.stringify(next.settings))
+        stmt.setKv.run('updated_at', new Date().toISOString())
+        db.exec('COMMIT')
+      } catch (e) { db.exec('ROLLBACK'); throw e }
+    },
+
+    /** به‌روزرسانی هدفمند یک رکورد (برای scheduler/redeem بدون بازنویسی کل سند) */
+    updateRecord(coll, id, data) {
+      return stmt.updateRow.run(JSON.stringify(data), coll, Number(id)).changes > 0
+    },
+    getRecord(coll, id) {
+      const r = stmt.getRow.get(coll, Number(id))
+      return r ? JSON.parse(r.data) : null
+    },
+
+    emptyState() {
+      return COLL_KEYS.every((key) => stmt.list.all(key).length === 0)
+    },
+
+    /* --- کاربر و نشست --- */
+    findUser(username) { return stmt.findUser.get(String(username)) || null },
+    listUsers() { return stmt.listUsers.all() },
+    createUser(username, passhash, role) {
+      stmt.insertUser.run(username, passhash, role, new Date().toISOString())
+    },
+    setUserRole(username, role) { return stmt.updateUserRole.run(role, username).changes > 0 },
+    destroySession(token) { if (token) stmt.delSession.run(String(token)) },
+    setPassword(username, newHash) { stmt.updateUserPass.run(newHash, username) },
+    deleteUser(username) { stmt.deleteSessionsOf.run(username); return stmt.deleteUser.run(username).changes > 0 },
+    createSession(username) {
+      const token = newToken()
+      stmt.pruneSessions.run(Date.now())
+      stmt.insertSession.run(token, username, Date.now() + 7 * DAY)
+      return token
+    },
+    sessionUser(token) {
+      if (!token) return null
+      const s = stmt.getSession.get(String(token))
+      if (!s) return null
+      if (s.expires_at < Date.now()) { stmt.delSession.run(s.token); return null }
+      return s.username
+    },
+    touchSeed() { stmt.setKv.run('seeded', new Date().toISOString()) },
+    dropSessions(username) { stmt.deleteSessionsOf.run(username) },
+    /** افزایش اتمی شمارنده مصرف کوپن با کد (بدون بازنویسی کل سند) */
+    redeemCouponByCode(code) {
+      db.exec('BEGIN IMMEDIATE')
+      try {
+        for (const row of stmt.couponRows.all()) {
+          const c = JSON.parse(row.data)
+          if (String(c.code).toUpperCase() === String(code).toUpperCase()) {
+            stmt.couponSet.run(JSON.stringify({ ...c, used: (c.used || 0) + 1 }), row.id)
+            db.exec('COMMIT')
+            return true
+          }
+        }
+        db.exec('COMMIT')
+        return false
+      } catch (e) { db.exec('ROLLBACK'); throw e }
+    },
+    defaultState,
+
+    /* --- ممیزی و ورودها --- */
+    audit(username, action, entity = '', detail = '') {
+      stmt.insertAudit.run(String(username ?? 'anon'), action, String(entity ?? '').slice(0, 60), String(detail ?? '').slice(0, 300), new Date().toISOString())
+      // سقف ساده‌ی جدول ممیزی
+      if (stmt.countAudit.get().n > 5000) db.exec('DELETE FROM audit WHERE id <= (SELECT MAX(id)-4000 FROM audit)')
+    },
+    listAudit(limit = 100, offset = 0) {
+      return { items: stmt.listAudit.all(Math.min(Number(limit) || 100, 200), Math.max(0, Number(offset) || 0)), total: stmt.countAudit.get().n }
+    },
+    logLogin(username, ok, ip) { stmt.insertLogin.run(String(username).slice(0, 60), ok ? 1 : 0, String(ip || '').slice(0, 45), new Date().toISOString()) },
+    listLogins() { return stmt.listLogins.all() },
+
+    /* --- تراکنش‌های پرداخت --- */
+    createTx({ authority, amount, description, gateway, coupon }) {
+      stmt.insertTx.run(authority, Math.trunc(amount), String(description || ''), 'waiting', gateway, coupon ? String(coupon).toUpperCase().slice(0, 30) : null, new Date().toISOString())
+      return stmt.getTx.get(authority)
+    },
+    markTx(authority, refId = null, ok = true) {
+      const r = ok ? stmt.verifyTx.run(String(refId ?? ''), new Date().toISOString(), authority)
+                   : stmt.failTx.run(new Date().toISOString(), authority)
+      return r.changes > 0
+    },
+    getTx(authority) { return stmt.getTx.get(String(authority)) || null },
+    listTx() { return stmt.listTx.all() },
+    paidSince(isoDate) { return stmt.paidInRange.all(isoDate) },
+    toneStatsSince(isoDate) { return stmt.toneStats.all(isoDate) },
+  }
+}

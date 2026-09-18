@@ -1,0 +1,466 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for src/views/AuditView.vue</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/views</a> AuditView.vue</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">44.54% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>49/110</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">28.57% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>2/7</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">14.28% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>1/7</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">44.54% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>49/110</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >&lt;script setup&gt;</span></span>
+<span class="cstat-no" title="statement not covered" >import { ref, onMounted, computed } from 'vue'</span>
+<span class="cstat-no" title="statement not covered" >import { useCms } from '../stores/cms'</span>
+<span class="cstat-no" title="statement not covered" >import { apiFetch } from '../utils/api'</span>
+<span class="cstat-no" title="statement not covered" >import { normFa, toFa } from '../utils/format'</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >const cms = useCms()</span>
+<span class="cstat-no" title="statement not covered" >const tab = ref('audit')</span>
+<span class="cstat-no" title="statement not covered" >const items = ref([])</span>
+<span class="cstat-no" title="statement not covered" >const total = ref(0)</span>
+<span class="cstat-no" title="statement not covered" >const offset = ref(0)</span>
+<span class="cstat-no" title="statement not covered" >const LIMIT = 50</span>
+<span class="cstat-no" title="statement not covered" >const q = ref('')</span>
+<span class="cstat-no" title="statement not covered" >const busy = ref(false)</span>
+<span class="cstat-no" title="statement not covered" >const logins = ref([])</span>
+<span class="cstat-no" title="statement not covered" >const error = ref('')</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >const ACTION_LABELS = {</span>
+<span class="cstat-no" title="statement not covered" >  'login': 'ورود موفق', 'login.fail': 'ورود ناموفق', 'logout': 'خروج',</span>
+<span class="cstat-no" title="statement not covered" >  'state.push': 'همگام‌سازی وضعیت', 'state.reset': 'بازگشت به نمونه',</span>
+<span class="cstat-no" title="statement not covered" >  'backup.import': 'بازیابی بکاپ', 'media.upload': 'آپلود تصویر',</span>
+<span class="cstat-no" title="statement not covered" >  'payment.create': 'ایجاد پرداخت', 'payment.verify': 'تأیید پرداخت',</span>
+<span class="cstat-no" title="statement not covered" >  'ai.caption': 'تولید AI', 'post.publish': 'انتشار خودکار پست', 'post.publish.fail': 'خطای انتشار پست',</span>
+<span class="cstat-no" title="statement not covered" >  'user.create': 'ساخت کاربر', 'user.delete': 'حذف کاربر', 'user.role': 'تغییر نقش', 'user.password': 'بازنشانی رمز',</span>
+<span class="cstat-no" title="statement not covered" >  'password.change': 'تغییر رمز', 'request.create': 'درخواست سایت',</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+<span class="cstat-no" title="statement not covered" >const ACTION_COLORS = {</span>
+<span class="cstat-no" title="statement not covered" >  'login': '#6ee7b7', 'login.fail': '#fbbf24', 'state.reset': '#f87171', 'backup.import': '#f87171',</span>
+<span class="cstat-no" title="statement not covered" >  'post.publish': '#7cc4ff', 'post.publish.fail': '#f87171', 'user.delete': '#f87171', 'payment.verify': '#6ee7b7',</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >const filtered = computed(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  const needle = normFa(q.value)</span>
+<span class="cstat-no" title="statement not covered" >  if (!needle) return items.value</span>
+<span class="cstat-no" title="statement not covered" >  return items.value.filter((a) =&gt; (normFa(`${a.username} ${a.action} ${a.entity} ${a.detail}`)).includes(needle))</span>
+<span class="cstat-no" title="statement not covered" >})</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >async function load(reset = false) {</span>
+<span class="cstat-no" title="statement not covered" >  if (!cms.online) { error.value = 'این بخش به اتصال سرور نیاز دارد.'; return <span class="branch-0 cbranch-no" title="branch not covered" >}</span></span>
+<span class="cstat-no" title="statement not covered" >  busy.value = true</span>
+<span class="cstat-no" title="statement not covered" >  error.value = ''</span>
+<span class="cstat-no" title="statement not covered" >  try {</span>
+<span class="cstat-no" title="statement not covered" >    if (reset) offset.value = 0</span>
+<span class="cstat-no" title="statement not covered" >    const r = await apiFetch(`/audit?limit=${LIMIT}&amp;offset=${offset.value}`)</span>
+<span class="cstat-no" title="statement not covered" >    items.value = reset ? r.items <span class="branch-0 cbranch-no" title="branch not covered" >: [...items.value, ...r.items]</span></span>
+<span class="cstat-no" title="statement not covered" >    total.value = r.total</span>
+<span class="cstat-no" title="statement not covered" >    if (tab.value === 'logins' <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !logins.value.length)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span></span>
+<span class="cstat-no" title="statement not covered" >      logins.value = (await apiFetch('/audit/logins')).items</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  } <span class="branch-0 cbranch-no" title="branch not covered" >catch (e) { error.value = e.message } finally { busy.value = false }</span></span>
+<span class="cstat-no" title="statement not covered" >}</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function more() { offset.value += LIMIT; load(false) }</span></span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function switchTab(t) { tab.value = t; if (t === 'logins' &amp;&amp; cms.online) load(false) }</span></span>
+<span class="cstat-no" title="statement not covered" >onMounted(() =&gt; load(true))</span>
+&lt;/script&gt;
+&nbsp;
+&lt;template&gt;
+<span class="cstat-no" title="statement not covered" >  &lt;section&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;h2 class="section-title"&gt;&lt;i class="fas fa-user-shield"&gt;&lt;/i&gt; گزارش ممیزی و دسترسی‌ها&lt;/h2&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;div v-if="!cms.online" class="offline-note"&gt;&lt;i class="fas fa-plug"&gt;&lt;/i&gt; برای دیدن تاریخچه‌ی واقعی (سمت سرور) باید متصل باشید؛ در حالت محلی لاگ نگه‌داشته نمی‌شود.&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;template v-else&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;div class="audit-toolbar"&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;div class="tabs-mini" role="tablist"&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;button role="tab" :class="{ active: tab === 'audit' }" :aria-selected="tab === 'audit'" @click<span class="fstat-no" title="function not covered" >="switchTab('audit')"&gt;ر</span>ویدادها ({{ toFa(total) }})&lt;/button&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;button role="tab" :class="{ active: tab === 'logins' }" :aria-selected="tab === 'logins'" @click<span class="fstat-no" title="function not covered" >="switchTab('logins')"&gt;ت</span>لاش‌های ورود&lt;/button&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;div v-if="tab === 'audit'" class="search-bar-3d" style="width: 260px; margin-top: 0;"&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;i class="fas fa-search" style="color:#555;font-size:.9rem;"&gt;&lt;/i&gt;</span>
+          &lt;input v-model="q" class="cms-input" placeholder="جستجوی کاربر/رویداد…" aria-label="جستجو در ممیزی" /&gt;
+        &lt;/div&gt;
+        &lt;button class="cms-btn" style="width:auto;padding:7px 14px;margin:0;background:#333;color:#fff;box-shadow:none;" :disabled="busy" @click<span class="fstat-no" title="function not covered" >="load(true)"&gt;</span>
+          &lt;i class="fas" :class="busy ? 'fa-spinner fa-spin' : 'fa-sync-alt'"&gt;&lt;/i&gt; تازه‌سازی
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;p v-if="error" class="field-error" role="alert"&gt;{{ error }}&lt;/p&gt;
+&nbsp;
+      &lt;div v-if="tab === 'audit'" class="data-card-3d"&gt;
+        &lt;p v-if="!filtered.length &amp;&amp; !busy" style="color:var(--text-muted);font-size:.85rem;"&gt;رویدادی ثبت نشده است.&lt;/p&gt;
+        &lt;table v-else class="data-table-3d" style="font-size:.78rem;"&gt;
+          &lt;thead&gt;&lt;tr&gt;&lt;th&gt;زمان&lt;/th&gt;&lt;th&gt;کاربر&lt;/th&gt;&lt;th&gt;رویداد&lt;/th&gt;&lt;th&gt;هدف&lt;/th&gt;&lt;th&gt;جزئیات&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr v-for="a in filtered" :key="a.id"&gt;
+              &lt;td style="white-space:nowrap;"&gt;{{ new Date(a.at).toLocaleString('fa-IR') }}&lt;/td&gt;
+              &lt;td&gt;{{ a.username }}&lt;/td&gt;
+              &lt;td&gt;
+                &lt;span :style="{ color: ACTION_COLORS[a.action] || 'var(--text-muted)' }"&gt;
+                  &lt;i class="fas fa-circle" style="font-size:.4rem;vertical-align:middle;margin-inline-end:5px;"&gt;&lt;/i&gt;
+                  {{ ACTION_LABELS[a.action] || a.action }}
+                &lt;/span&gt;
+              &lt;/td&gt;
+              &lt;td style="direction:ltr;text-align:left;"&gt;{{ a.entity || '—' }}&lt;/td&gt;
+              &lt;td style="color:var(--text-muted);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" :title="a.detail"&gt;{{ a.detail || '—' }}&lt;/td&gt;
+            &lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+        &lt;button v-if="items.length &lt; total" class="cms-btn" style="width:auto;padding:7px 14px;margin-top:10px;background:#333;color:#fff;box-shadow:none;" @click="more"&gt;
+          مورد بیشتر ({{ toFa(items.length) }} از {{ toFa(total) }})
+        &lt;/button&gt;
+      &lt;/div&gt;
+&nbsp;
+      &lt;div v-else class="data-card-3d"&gt;
+        &lt;p v-if="!logins.length" style="color:var(--text-muted);font-size:.85rem;"&gt;سابقه‌ی ورودی ثبت نشده.&lt;/p&gt;
+        &lt;table v-else class="data-table-3d" style="font-size:.78rem;"&gt;
+          &lt;thead&gt;&lt;tr&gt;&lt;th&gt;زمان&lt;/th&gt;&lt;th&gt;نام کاربری&lt;/th&gt;&lt;th&gt;نتیجه&lt;/th&gt;&lt;th&gt;IP&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr v-for="l in logins" :key="l.id"&gt;
+              &lt;td&gt;{{ new Date(l.at).toLocaleString('fa-IR') }}&lt;/td&gt;
+              &lt;td&gt;{{ l.username }}&lt;/td&gt;
+              &lt;td&gt;
+                &lt;span v-if="l.ok" class="status-chip chip-green"&gt;موفق&lt;/span&gt;
+                &lt;span v-else class="status-chip" style="background:rgba(248,113,113,.12);color:#f87171;"&gt;ناموفق&lt;/span&gt;
+              &lt;/td&gt;
+              &lt;td style="direction:ltr;text-align:left;color:var(--text-muted);"&gt;{{ l.ip || '—' }}&lt;/td&gt;
+            &lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/section&gt;
+&lt;/template&gt;
+&nbsp;
+&lt;style scoped&gt;
+.audit-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.tabs-mini { display: flex; gap: 6px; }
+.tabs-mini button { background: none; border: 1px solid rgba(255,255,255,.15); color: var(--text-muted); border-radius: 8px; padding: 6px 14px; cursor: pointer; font: inherit; }
+.tabs-mini button.active { border-color: var(--primary); color: var(--primary); }
+&lt;/style&gt;
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-09-18T16:40:25.073Z
+            </div>
+        <script src="../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
+    </body>
+</html>
+    

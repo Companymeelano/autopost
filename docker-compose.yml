@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    image: panahfit-cms:latest
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    volumes:
+      - panahfit-data:/app/data
+    env_file:
+      - .env
+    environment:
+      DATA_DIR: /app/data
+
+  # بکاپ روزانه با cron-container (VACUUM INTO + نگهداری ۱۴ نسخه)
+  backup:
+    image: panahfit-cms:latest
+    restart: "no"
+    profiles: ["backup"]
+    volumes:
+      - panahfit-data:/app/data
+    command: >
+      sh -c "while true; do node server/backup.js; sleep 86400; done"
+
+volumes:
+  panahfit-data:
