@@ -32,6 +32,7 @@ const SCHED = createScheduler({ DB, env: ENV, audit: DB.audit })
 
 const loginLimiter = rateLimiter({ max: 8, windowMs: 60_000 })
 const publicLimiter = rateLimiter({ max: 30, windowMs: 60_000 })
+const orderLimiter = rateLimiter({ max: 10, windowMs: 60_000 })
 
 const FRAME = ENV.CSP_FRAME_ANCESTORS ? `'${String(ENV.CSP_FRAME_ANCESTORS).replace(/'/g, '')}'` : "'self'" // در production: CSP_FRAME_ANCESTORS=none
 const CSP = `default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors ${FRAME}; media-src 'self'`
@@ -195,6 +196,119 @@ async function handle(req, res) {
     DB.replaceState(st); DB.bumpRev()
     DB.audit('site', 'request.create', `req#${id}`, subject.slice(0, 60))
     return sendJsonSafe(res, 201, { ok: true, id })
+  }
+
+
+  /* ---- فاز ۳: صفحات عمومی سایت ---- */
+  if (path === '/gateway' && method === 'GET') return gatewayPage(url.searchParams.get('ref') || '', req, res)
+  if (path === '/sitemap.xml' && method === 'GET') return sitemapXml(req, res)
+  if (path === '/robots.txt' && method === 'GET') {
+    const base = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || 'localhost'}`
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', ...SECURITY_HEADERS })
+    return res.end(`User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${base}/sitemap.xml\n`)
+  }
+  if (path === '/api/public/site' && method === 'GET') {
+    const st = DB.getState()
+    if (st.settings.maintenance) return sendJsonSafe(res, 503, { error: 'سایت در حالت نگهداری است.' })
+    let products = st.products
+    if (st.settings.hideZeroStock) products = products.filter((p) => (p.stock ?? 0) > 0)
+    const pub = products.map((p) => ({
+      id: p.id, title: p.title, cat: p.cat, price: p.price, oldPrice: p.oldPrice || 0,
+      stock: p.stock ?? 0, sold: p.sold || 0, desc: p.desc || '',
+      image: String(p.image || '').startsWith('/media/') ? p.image : '', // base64 به کاربر عمومی نرود
+      meta: p.meta || {},
+    }))
+    const posts = st.posts.filter((p) => p.status === 'published')
+      .map(({ id, title, body, date, author, channel, publishedAt }) => ({ id, title, body, date, author, channel, publishedAt }))
+      .sort((a, b) => String(b.publishedAt || b.date || '').localeCompare(String(a.publishedAt || a.date || '')))
+    return sendJsonSafe(res, 200, {
+      products: pub, posts,
+      settings: { siteName: st.settings.siteName || 'پناه‌فیت', newDiscount: !!st.settings.newDiscount, telegramChannel: st.settings.telegramChannel || '', phone: st.settings.phone || '', address: st.settings.address || '' },
+    })
+  }
+  if (path === '/api/public/orders' && method === 'POST') {
+    if (DB.getState().settings.maintenance) throw httpErr(503, 'سایت موقتاً در حالت نگهداری است.')
+    if (!orderLimiter(req.socket.remoteAddress || 'x')) throw httpErr(429, 'برای جلوگیری از سفارش‌های رباتیک، کمی بعد تلاش کنید.')
+    const b = await readBody(req)
+    const st = DB.getState()
+    const e = {}
+    const buyer = String(b.buyer ?? '').trim()
+    const phone = String(b.phone ?? '').replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).trim()
+    const address = String(b.address ?? '').trim()
+    if (buyer.length < 3) e.buyer = 'نام و نام خانوادگی را کامل وارد کنید.'
+    if (!/^09\d{9}$/.test(phone)) e.phone = 'شماره موبایل باید با 09 شروع شده و ۱۱ رقم باشد.'
+    if (address.length < 10) e.address = 'آدرس کامل حداقل ۱۰ نویسه است.'
+    const raw = Array.isArray(b.items) ? b.items : []
+    if (!raw.length || raw.length > 30) throw httpErr(422, 'سبد خرید خالی یا بیش از حد بزرگ است.', { items: 'تعداد اقلام نامعتبر' })
+    const map = new Map(st.products.map((p) => [Number(p.id), p]))
+    const clean = []
+    for (const it of raw) {
+      const p = map.get(Number(it.id))
+      if (!p) { e['item_' + it.id] = 'این محصول دیگر وجود ندارد.'; continue }
+      const qty = Math.floor(Number(it.qty))
+      if (!Number.isInteger(qty) || qty < 1) { e['item_' + it.id] = 'تعداد نامعتبر است.'; continue }
+      if ((p.stock ?? 0) <= 0 && st.settings.hideZeroStock) { e['item_' + it.id] = 'این محصول ناموجود است.'; continue }
+      if ((p.stock ?? 0) < qty) { e['item_' + it.id] = `موجودی فقط ${p.stock ?? 0} عدد است.`; continue }
+      if (qty > 99) { e['item_' + it.id] = 'حداکثر ۹۹ عدد در هر سفارش.'; continue }
+      clean.push({ id: Number(p.id), title: p.title, price: Number(p.price) || 0, qty })
+    }
+    if (Object.keys(e).length) throw httpErr(422, 'سبد خرید قابل ثبت نیست.', e)
+    const total = clean.reduce((s2, x) => s2 + x.price * x.qty, 0)
+    let discount = 0; let coupon = null
+    if (b.couponCode) {
+      const code = String(b.couponCode).trim().toUpperCase()
+      const c = st.coupons.find((x) => x.code === code)
+      const chk = checkCoupon(c, total)
+      if (!chk.valid) throw httpErr(422, chk.message || 'کد تخفیف نامعتبر است.', { couponCode: chk.message || 'نامعتبر' })
+      discount = chk.discount; coupon = code
+    }
+    const payable = total - discount
+    if (payable < 1000) throw httpErr(422, 'حداقل مبلغ قابل‌پرداخت ۱٬۰۰۰ تومان است.', { payable: 'کم از حد مجاز' })
+    const ref = 'PF-' + Date.now().toString(36).toUpperCase().slice(-7) + '-' + Math.random().toString(36).slice(2, 5).toUpperCase()
+    const base = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || `localhost:${PORT}`}`
+    const pm = await createPayment(ENV, { amount: payable, description: `سفارش ${ref}`, callbackBase: base })
+    DB.createTx({ authority: pm.authority, amount: payable, description: `سفارش ${ref}`, gateway: pm.mode, coupon })
+    DB.createOrder({ ref, buyer, phone, address, note: String(b.note ?? '').slice(0, 500), items: clean, total, discount, payable, coupon, authority: pm.authority })
+    DB.audit('site', 'order.create', ref, `${clean.length} قلم، ${payable}T${coupon ? ' ' + coupon : ''}`)
+    return sendJsonSafe(res, 201, { ref, total, discount, payable, authority: pm.authority, mode: pm.mode, payUrl: pm.url || `/gateway?ref=${encodeURIComponent(ref)}` })
+  }
+  if (path === '/api/public/orders/return' && method === 'GET') {
+    const ref = String(url.searchParams.get('ref') || '')
+    const decision = String(url.searchParams.get('decision') || 'ok')
+    const order = DB.orderByRef(ref)
+    if (!order) throw httpErr(404, 'سفارش یافت نشد.')
+    if (order.status === 'waiting') {
+      if (decision === 'ok' && order.authority) {
+        try {
+          const v = await verifyPayment(ENV, { authority: order.authority, amount: order.payable })
+          const settled = DB.settleOrder(order.authority, v.refId)
+          if (settled.ok) {
+            if (v.ok) DB.markTx(order.authority, v.refId, true)
+            if (order.coupon) redeemCoupon(order.coupon)
+            DB.audit('site', 'order.paid', ref, `ref:${v.refId || 'demo'}`)
+          } else if (settled.error === 'insufficient_stock') {
+            DB.failOrder(ref); DB.markTx(order.authority, null, false)
+            DB.audit('site', 'order.stockfail', ref, settled.title || '')
+          }
+        } catch { DB.markTx(order.authority, null, false); DB.failOrder(ref) }
+      } else if (decision !== 'ok') {
+        if (order.authority) DB.markTx(order.authority, null, false)
+        DB.failOrder(ref)
+      }
+    }
+    res.writeHead(302, { Location: `/#/order/${encodeURIComponent(ref)}`, 'Content-Security-Policy': CSP })
+    return res.end()
+  }
+  if (path.startsWith('/api/public/orders/') && method === 'GET') {
+    const ref = path.slice('/api/public/orders/'.length)
+    const order = /^PF-[A-Z0-9-]{4,}$/i.test(ref) ? DB.orderByRef(ref) : null
+    if (!order) throw httpErr(404, 'سفارش یافت نشد.')
+    return sendJsonSafe(res, 200, {
+      ref: order.ref, status: order.status, refId: order.ref_id || '', buyer: order.buyer,
+      total: order.total, discount: order.discount, payable: order.payable, coupon: order.coupon,
+      created_at: order.created_at, verified_at: order.verified_at,
+      items: order.items.map((i) => ({ id: i.id, title: i.title, qty: i.qty, price: i.price })),
+    })
   }
 
   /* ---- احراز هویت ---- */
@@ -455,6 +569,29 @@ async function handle(req, res) {
     return
   }
 
+  /* ---- سفارش‌ها (مدیریت، فاز ۳) ---- */
+  if (path === '/api/orders' && method === 'GET') {
+    requirePerm(user, 'payments')
+    return sendJsonSafe(res, 200, { items: DB.listOrders(Number(url.searchParams.get('limit')) || 100) })
+  }
+  {
+    const mOrd = path.match(/^\/api\/orders\/(PF-[A-Z0-9-]+)\/(ship|cancel)$/)
+    if (mOrd && method === 'POST') {
+      requirePerm(user, 'payments')
+      const [, ref, op] = mOrd
+      if (op === 'ship') {
+        const ok = DB.shipOrder(ref)
+        if (!ok) throw httpErr(409, 'فقط سفارش پرداخت‌شده قابل ارسال است.')
+        DB.audit(user.username, 'order.ship', ref, '')
+        return sendJsonSafe(res, 200, { ok: true, status: 'shipped' })
+      }
+      const r = DB.cancelOrder(ref)
+      if (!r.ok) throw httpErr(409, r.error === 'not_found' ? 'سفارش یافت نشد.' : 'این سفارش در وضعیت فعلی قابل لغو نیست.')
+      DB.audit(user.username, 'order.cancel', ref, r.refunded ? 'stock-refunded' : '')
+      return sendJsonSafe(res, 200, { ok: true, status: 'cancelled', refunded: r.refunded })
+    }
+  }
+
   /* ---- بکاپ ---- */
   if (path === '/api/backup/export' && method === 'GET') {
     const body = JSON.stringify({ app: 'panahfit-cms', version: 3, exportedAt: new Date().toISOString(), rev: DB.getRev(), ...DB.getState() }, null, 2)
@@ -494,12 +631,48 @@ function isoWeekStart(d) {
   return x.toISOString().slice(0, 10)
 }
 
+/* ---- صفحه درگاه دمو + sitemap (فاز ۳) ---- */
+function fmtToman(n) { return (Number(n) || 0).toLocaleString('fa-IR') }
+function esc(s2) { return String(s2 ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])) }
+function gatewayPage(ref, req, res) {
+  const o = ref ? DB.orderByRef(ref) : null
+  const head = '<!doctype html><html dir="rtl" lang="fa"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>درگاه پرداخت — پناه‌فیت</title>' +
+    '<style>body{font-family:Vazirmatn,Tahoma,system-ui;background:#0a0a14;color:#eaeaea;display:grid;place-items:center;min-height:100vh;margin:0}' +
+    '.card{background:#12121f;border:1px solid #00ffaa44;border-radius:18px;padding:28px 30px;max-width:430px;width:92%;box-shadow:0 0 40px #00ffaa22}' +
+    'h1{font-size:1.05rem;margin:0 0 14px;color:#00ffaa}table{width:100%;font-size:.85rem;border-collapse:collapse;margin:10px 0 18px}td{padding:5px 2px;border-bottom:1px dashed #2a2a3f}' +
+    '.btns{display:flex;gap:10px}a{flex:1;text-align:center;text-decoration:none;padding:11px;border-radius:10px;font-weight:700}' +
+    '.ok{background:#00ffaa;color:#04110b}.no{background:#221025;color:#ff5a7a;border:1px solid #ff5a7a55}</style></head><body>'
+  if (!o || o.status !== 'waiting') {
+    res.writeHead(o ? 200 : 404, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
+    return res.end(head + '<div class="card"><h1>⚡ درگاه پرداخت پناه‌فیت</h1><p>این سفارش در وضعیت «' + esc(o ? o.status : 'ناشناخته') + '» است و نیازی به پرداخت ندارد.</p><div class="btns"><a class="ok" href="/#/">بازگشت به فروشگاه</a></div></div></body></html>')
+  }
+  const rows = o.items.map((i) => `<tr><td>${esc(i.title)}</td><td style="text-align:left">${fmtToman(i.price * i.qty)}</td></tr>`).join('')
+  const back = `/api/public/orders/return?ref=${encodeURIComponent(ref)}&decision=`
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
+  res.end(head + `<div class="card"><h1>⚡ درگاه پرداخت پناه‌فیت (دمو)</h1>
+    <p style="font-size:.8rem;color:#9a9ab5">شماره سفارش: ${esc(o.ref)}</p>
+    <table>${rows}${o.discount ? `<tr><td>تخفیف کوپن</td><td style="text-align:left;color:#7dffb0">- ${fmtToman(o.discount)}</td></tr>` : ''}
+    <tr><td><b>قابل پرداخت</b></td><td style="text-align:left"><b>${fmtToman(o.payable)} تومان</b></td></tr></table>
+    <div class="btns"><a class="ok" href="${back}ok">پرداخت موفق</a><a class="no" href="${back}fail" rel="nofollow">عملیات ناموفق</a></div>
+    <p style="font-size:.68rem;color:#666;margin-top:14px">این درگاه نمایشی است؛ در محیط production با زرین‌پال واقعی جایگزین می‌شود.</p></div></body></html>`)
+}
+function sitemapXml(req, res) {
+  const st = DB.getState()
+  const base = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || 'localhost'}`
+  const urls = ['/', '/blog', '/contact', ...st.products.map((p) => `/#/product/${p.id}`), ...st.posts.filter((p) => p.status === 'published').map((p) => `/#/post/${p.id}`)]
+  const body = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
+    urls.map((u) => `<url><loc>${esc(base + u)}</loc></url>`).join('') + '</urlset>'
+  res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8', ...SECURITY_HEADERS })
+  res.end(body)
+}
+
 /* ================= سوکت HTTP ================= */
 const DIST = join(ROOT, 'dist')
 const server = createServer(async (req, res) => {
   try {
     const p = String(req.url || '/').split('?')[0]
-    if (!p.startsWith('/api/') && !p.startsWith('/media/')) {
+    const SPECIAL = p === '/gateway' || p === '/sitemap.xml' || p === '/robots.txt'
+    if (!p.startsWith('/api/') && !p.startsWith('/media/') && !SPECIAL) {
       if (existsSync(DIST) && (req.method === 'GET' || req.method === 'HEAD')) {
         return serveStatic(DIST, req.url || '/', res, CSP)
       }

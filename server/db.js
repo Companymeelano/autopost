@@ -42,6 +42,15 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
       action TEXT NOT NULL, entity TEXT, detail TEXT, at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_audit_at ON audit(at DESC);
+    CREATE TABLE IF NOT EXISTS orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, ref TEXT UNIQUE NOT NULL,
+      buyer TEXT NOT NULL, phone TEXT NOT NULL, address TEXT NOT NULL, note TEXT,
+      items TEXT NOT NULL, total INTEGER NOT NULL, discount INTEGER NOT NULL DEFAULT 0,
+      payable INTEGER NOT NULL, coupon TEXT, authority TEXT UNIQUE,
+      status TEXT NOT NULL DEFAULT 'waiting', ref_id TEXT,
+      created_at TEXT NOT NULL, verified_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
     CREATE TABLE IF NOT EXISTS logins (
       id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL,
       ok INTEGER NOT NULL, ip TEXT, at TEXT NOT NULL
@@ -106,11 +115,18 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
     insertLogin: db.prepare('INSERT INTO logins (username, ok, ip, at) VALUES (?,?,?,?)'),
     listLogins: db.prepare('SELECT * FROM logins ORDER BY id DESC LIMIT 50'),
     toneStats: db.prepare("SELECT detail, COUNT(*) AS n FROM audit WHERE action='ai.caption' AND at >= ? GROUP BY detail ORDER BY n DESC LIMIT 5"),
+    createOrder: db.prepare('INSERT INTO orders (ref, buyer, phone, address, note, items, total, discount, payable, coupon, authority, status, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'),
+    orderByRef: db.prepare('SELECT * FROM orders WHERE ref=?'),
+    orderByAuth: db.prepare('SELECT * FROM orders WHERE authority=?'),
+    listOrders: db.prepare('SELECT * FROM orders ORDER BY id DESC LIMIT ?'),
+    orderSetStatus: db.prepare("UPDATE orders SET status=?, ref_id=COALESCE(?, ref_id), verified_at=? WHERE ref=? AND status=?"),
+    orderSetAuth: db.prepare('UPDATE orders SET authority=? WHERE ref=?'),
     couponRows: db.prepare('SELECT id, data FROM records WHERE coll=\'coupons\' ORDER BY pos'),
     couponSet: db.prepare('UPDATE records SET data=? WHERE coll=\'coupons\' AND id=?'),
   }
 
   const getRev = () => Number(stmt.getKv.get('rev')?.v ?? 1)
+  const shapeOrder = (r) => ({ ...r, items: JSON.parse(r.items || '[]') })
 
   return {
     raw: db,
@@ -180,6 +196,63 @@ export function openDb(dbPath, adminCreds = { username: 'admin', password: '1234
     },
     touchSeed() { stmt.setKv.run('seeded', new Date().toISOString()) },
     dropSessions(username) { stmt.deleteSessionsOf.run(username) },
+    /* --- سفارش‌ها (فاز ۳) — کسر موجودی اتمیک در لحظه پرداخت --- */
+    createOrder(o) {
+      stmt.createOrder.run(o.ref, o.buyer, o.phone, o.address, o.note || '', JSON.stringify(o.items),
+        o.total, o.discount || 0, o.payable, o.coupon || null, o.authority || null, 'waiting', new Date().toISOString())
+      return this.orderByRef(o.ref)
+    },
+    orderByRef(ref) { const r = stmt.orderByRef.get(String(ref)); return r && shapeOrder(r) },
+    listOrders(limit = 100) { return stmt.listOrders.all(Math.min(Number(limit) || 100, 300)).map(shapeOrder) },
+    orderSetAuthority(ref, authority) { stmt.orderSetAuth.run(authority, String(ref)) },
+    /** تسویه سفارش: waiting→paid + کسر استوک و افزایش sold (اگر موجودی کم باشد کل تراکنش rollback) */
+    settleOrder(authority, refId) {
+      db.exec('BEGIN IMMEDIATE')
+      try {
+        const row = stmt.orderByAuth.get(String(authority))
+        if (!row) { db.exec('COMMIT'); return { ok: false, error: 'not_found' } }
+        if (row.status !== 'waiting') { db.exec('COMMIT'); return { ok: row.status === 'paid' || row.status === 'shipped', deduped: true, status: row.status, ref: row.ref } }
+        const items = JSON.parse(row.items)
+        const rows = []
+        for (const it of items) {
+          const r = stmt.getRow.get('products', Number(it.id))
+          if (!r) { db.exec('ROLLBACK'); return { ok: false, error: 'product_missing', productId: it.id } }
+          const p = JSON.parse(r.data)
+          if ((p.stock ?? 0) < it.qty) { db.exec('ROLLBACK'); return { ok: false, error: 'insufficient_stock', productId: it.id, title: p.title, stock: p.stock ?? 0, qty: it.qty } }
+          rows.push([it.id, { ...p, stock: (p.stock ?? 0) - it.qty, sold: (p.sold || 0) + it.qty }])
+        }
+        for (const [id, data] of rows) stmt.updateRow.run(JSON.stringify(data), 'products', Number(id))
+        stmt.orderSetStatus.run('paid', refId || 'DEMO-' + Date.now().toString(36).toUpperCase(), new Date().toISOString(), row.ref, 'waiting')
+        db.exec('COMMIT')
+        this.bumpRev()
+        return { ok: true, status: 'paid', ref: row.ref }
+      } catch (e) { try { db.exec('ROLLBACK') } catch { /* noop */ } throw e }
+    },
+    /** لغو سفارش: بازگرداندن موجودی فقط اگر پرداخت‌شده باشد */
+    cancelOrder(ref) {
+      db.exec('BEGIN IMMEDIATE')
+      try {
+        const row = stmt.orderByRef.get(String(ref))
+        if (!row || !['waiting', 'paid'].includes(row.status)) { db.exec('COMMIT'); return { ok: false, error: row ? 'bad_status' : 'not_found' } }
+        if (row.status === 'paid') {
+          for (const it of JSON.parse(row.items)) {
+            const r = stmt.getRow.get('products', Number(it.id))
+            if (!r) continue
+            const p = JSON.parse(r.data)
+            stmt.updateRow.run(JSON.stringify({ ...p, stock: (p.stock ?? 0) + it.qty, sold: Math.max(0, (p.sold || 0) - it.qty) }), 'products', Number(it.id))
+          }
+        }
+        stmt.orderSetStatus.run('cancelled', null, new Date().toISOString(), row.ref, row.status)
+        db.exec('COMMIT')
+        this.bumpRev()
+        return { ok: true, status: 'cancelled', refunded: row.status === 'paid' }
+      } catch (e) { try { db.exec('ROLLBACK') } catch { /* noop */ } throw e }
+    },
+    failOrder(ref) { return stmt.orderSetStatus.run('failed', null, new Date().toISOString(), String(ref), 'waiting').changes > 0 },
+    shipOrder(ref) {
+      const n = stmt.orderSetStatus.run('shipped', null, new Date().toISOString(), String(ref), 'paid')
+      return n.changes > 0
+    },
     /** افزایش اتمی شمارنده مصرف کوپن با کد (بدون بازنویسی کل سند) */
     redeemCouponByCode(code) {
       db.exec('BEGIN IMMEDIATE')

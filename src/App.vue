@@ -5,6 +5,7 @@ import { useCms } from './stores/cms'
 import ToastHost from './components/ToastHost.vue'
 import ModalHost from './components/ModalHost.vue'
 import CommandPalette from './components/CommandPalette.vue'
+import SiteShell from './components/site/SiteShell.vue'
 
 const cms = useCms()
 const route = useRoute()
@@ -18,6 +19,7 @@ const NAV_ALL = [
   { page: 'pricing', icon: 'fa-tags', label: 'قیمت‌گذاری و تخفیفات' },
   { page: 'messages', icon: 'fa-inbox', label: 'پیام‌ها و درخواست‌ها' },
   { page: 'ai', icon: 'fa-brain', label: 'تولید محتوای هوشمند (AI)' },
+  { page: 'orders', icon: 'fa-receipt', label: 'مدیریت سفارش‌ها', perm: 'payments' },
   { page: 'payments', icon: 'fa-credit-card', label: 'پرداخت و تراکنش‌ها', perm: 'payments' },
   { page: 'audit', icon: 'fa-user-shield', label: 'گزارش ممیزی', perm: 'audit' },
   { page: 'users', icon: 'fa-users', label: 'کاربران و نقش‌ها', perm: 'users' },
@@ -53,8 +55,13 @@ async function logout() {
 </script>
 
 <template>
+  <!-- فاز ۳: صفحات عمومی سایت (برای مهمان و ورودکرده) -->
+  <SiteShell v-if="route.meta.site">
+    <router-view />
+  </SiteShell>
+
   <!-- مهمان: فقط صفحه ورود -->
-  <template v-if="!cms.authed">
+  <template v-else-if="!cms.authed">
     <router-view />
   </template>
 
@@ -66,6 +73,7 @@ async function logout() {
         <span class="sync-badge" :class="'sync-' + cms.sync.status" :title="'وضعیت همگام‌سازی: ' + cms.sync.status">
           <i class="fas" :class="syncIcon"></i> {{ syncLabel }}
         </span>
+        <RouterLink to="/" title="مشاهده فروشگاه" style="color:#9a9ab5;text-decoration:none;padding:6px 9px;border:1px solid #333;border-radius:8px;"><i class="fas fa-globe"></i></RouterLink>
         <i class="fas fa-user-circle" style="color: var(--primary);"></i>
         <span>{{ cms.user || 'مدیر سیستم' }}</span>
       </div>

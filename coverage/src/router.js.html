@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>32/32</span>
+                <span class='fraction'>41/41</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.75% </span>
+                <span class="strong">96.29% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>15/16</span>
+                <span class='fraction'>26/27</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">91.66% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>11/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>32/32</span>
+                <span class='fraction'>41/41</span>
             </div>
         
             
@@ -107,7 +107,16 @@
 <a name='L42'></a><a href='#L42'>42</a>
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
-<a name='L45'></a><a href='#L45'>45</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -136,21 +145,30 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">61x</span>
-<span class="cline-any cline-yes">61x</span>
-<span class="cline-any cline-yes">61x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">44x</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">17x</span>
-<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">53x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { createRouter, createWebHashHistory } from 'vue-router'
 import { useCms } from './stores/cms'
 import LoginView from './views/LoginView.vue'
@@ -164,7 +182,15 @@ import AIView from './views/AIView.vue'
 import SettingsView from './views/SettingsView.vue'
 &nbsp;
 export const routes = [
-  { path: '/', redirect: '/dashboard' },
+  // ---- فاز ۳: صفحات عمومی سایت ----
+  { path: '/', name: 'shop', component: () =&gt; import('./views/site/ShopView.vue'), meta: { site: true, title: 'فروشگاه پناه‌فیت | لباس ورزشی' } },
+  { path: '/product/:id(\\d+)', name: 'product', component: () =&gt; import('./views/site/ProductView.vue'), meta: { site: true } },
+  { path: '/blog', name: 'blog', component: () =&gt; import('./views/site/BlogView.vue'), meta: { site: true, title: 'مجله پناه‌فیت' } },
+  { path: '/post/:id(\\d+)', name: 'post', component: () =&gt; import('./views/site/PostView.vue'), meta: { site: true } },
+  { path: '/checkout', name: 'checkout', component: () =&gt; import('./views/site/CheckoutView.vue'), meta: { site: true, title: 'سبد خرید و پرداخت' } },
+  { path: '/order/:ref', name: 'order-status', component: () =&gt; import('./views/site/OrderView.vue'), meta: { site: true, title: 'پیگیری سفارش' } },
+  { path: '/contact', name: 'contact', component: () =&gt; import('./views/site/ContactView.vue'), meta: { site: true, title: 'تماس با ما' } },
+  { path: '/orders', name: 'orders', component: <span class="fstat-no" title="function not covered" >() =&gt; import('./views/OrdersView.vue'), me</span>ta: { auth: true, nav: 'orders', title: 'مدیریت سفارش‌ها' } },
   { path: '/login', name: 'login', component: LoginView },
   { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { auth: true, nav: 'dashboard', title: 'داشبورد و گزارش‌گیری' } },
   { path: '/products', name: 'products', component: ProductsView, meta: { auth: true, nav: 'products', title: 'مدیریت محصولات' } },
@@ -191,7 +217,8 @@ export function makeRouter() {
     return true
   })
   router.afterEach((to) =&gt; {
-    document.title = (to.meta.title ? to.meta.title + ' — ' : '') + 'PanahFit CMS'
+    // صفحات ویو خودشان عنوان سئو را ست می‌کنند (utils/seo)؛ اینجا فقط پنل
+    if (!to.meta.site || to.meta.title) document.title = (to.meta.title ? to.meta.title + ' — ' : '') + (to.meta.site ? 'پناه‌فیت' : 'PanahFit CMS')
   })
   return router
 }
@@ -202,7 +229,7 @@ export function makeRouter() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-09-18T16:40:25.073Z
+                at 2026-09-18T16:56:46.724Z
             </div>
         <script src="../prettify.js"></script>
         <script>

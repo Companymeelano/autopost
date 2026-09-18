@@ -20,6 +20,8 @@ const PAGES = [
   { label: 'پیام‌ها', page: 'messages', icon: 'fa-inbox' },
   { label: 'هوش مصنوعی', page: 'ai', icon: 'fa-brain' },
   { label: 'پرداخت‌ها', page: 'payments', icon: 'fa-credit-card' },
+  { label: 'سفارش‌های فروشگاه', page: 'orders', icon: 'fa-receipt' },
+  { label: 'مشاهده سایت', page: '', icon: 'fa-globe', external: true },
   { label: 'تنظیمات', page: 'settings', icon: 'fa-cog' },
 ]
 
@@ -27,7 +29,7 @@ const results = computed(() => {
   const needle = normFa(q.value)
   const out = []
   for (const pg of PAGES) {
-    if (!needle || normFa(pg.label).includes(needle)) out.push({ type: 'صفحه', label: pg.label, icon: pg.icon, run: () => router.push('/' + pg.page) })
+    if (!needle || normFa(pg.label).includes(needle)) out.push({ type: 'صفحه', label: pg.label, icon: pg.icon, run: () => (pg.external ? router.push('/') : router.push('/' + pg.page)) })
   }
   if (needle) {
     for (const p of cms.products) if (normFa(p.title).includes(needle))

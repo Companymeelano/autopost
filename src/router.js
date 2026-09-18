@@ -11,7 +11,15 @@ import AIView from './views/AIView.vue'
 import SettingsView from './views/SettingsView.vue'
 
 export const routes = [
-  { path: '/', redirect: '/dashboard' },
+  // ---- فاز ۳: صفحات عمومی سایت ----
+  { path: '/', name: 'shop', component: () => import('./views/site/ShopView.vue'), meta: { site: true, title: 'فروشگاه پناه‌فیت | لباس ورزشی' } },
+  { path: '/product/:id(\\d+)', name: 'product', component: () => import('./views/site/ProductView.vue'), meta: { site: true } },
+  { path: '/blog', name: 'blog', component: () => import('./views/site/BlogView.vue'), meta: { site: true, title: 'مجله پناه‌فیت' } },
+  { path: '/post/:id(\\d+)', name: 'post', component: () => import('./views/site/PostView.vue'), meta: { site: true } },
+  { path: '/checkout', name: 'checkout', component: () => import('./views/site/CheckoutView.vue'), meta: { site: true, title: 'سبد خرید و پرداخت' } },
+  { path: '/order/:ref', name: 'order-status', component: () => import('./views/site/OrderView.vue'), meta: { site: true, title: 'پیگیری سفارش' } },
+  { path: '/contact', name: 'contact', component: () => import('./views/site/ContactView.vue'), meta: { site: true, title: 'تماس با ما' } },
+  { path: '/orders', name: 'orders', component: () => import('./views/OrdersView.vue'), meta: { auth: true, nav: 'orders', title: 'مدیریت سفارش‌ها' } },
   { path: '/login', name: 'login', component: LoginView },
   { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { auth: true, nav: 'dashboard', title: 'داشبورد و گزارش‌گیری' } },
   { path: '/products', name: 'products', component: ProductsView, meta: { auth: true, nav: 'products', title: 'مدیریت محصولات' } },
@@ -38,7 +46,8 @@ export function makeRouter() {
     return true
   })
   router.afterEach((to) => {
-    document.title = (to.meta.title ? to.meta.title + ' — ' : '') + 'PanahFit CMS'
+    // صفحات ویو خودشان عنوان سئو را ست می‌کنند (utils/seo)؛ اینجا فقط پنل
+    if (!to.meta.site || to.meta.title) document.title = (to.meta.title ? to.meta.title + ' — ' : '') + (to.meta.site ? 'پناه‌فیت' : 'PanahFit CMS')
   })
   return router
 }

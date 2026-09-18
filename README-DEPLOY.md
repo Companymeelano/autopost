@@ -39,6 +39,12 @@ npm run db:backup    # VACUUM INTO → data/backups/panahfit-<زمان>.sqlite (
 **بازیابی (سناریوی تست‌شده):** توقف سرویس ← قرار دادن فایل备份 به‌جای `data/panahfit.db`
 (فایل‌های `-wal`/`-shm` قدیمی را پاک کنید) ← استارت سرویس ← بررسی `/api/health` و لاگین.
 
+## فروشگاه عمومی (فاز ۳)
+- مسیرهای سایت روی همان origin: `/#/` فروشگاه، `/#/product/:id`، `/#/checkout`، `/#/order/:ref`، `/#/blog`، `/#/contact`
+- درگاه: تا `ZARINPAL_MERCHANT_ID` ست نشده باشد **دموی داخلی** فعال است — صفحه `GET /gateway?ref=…` که مشتری را به تأیید/انصراف می‌برد (سنجش واقعی پرداخت با `verify` سمت سرور و کسر اتمیک موجودی)
+- `sitemap.xml` و `robots.txt` خودکار از داده‌های پنل ساخته می‌شوند (محصولات فعال + پست‌های منتشرشده)
+- حالت نگهداری (`settings.maintenance`) کل اندپوینت‌های عمومی و سفارش‌گذاری را 503 می‌کند
+
 ## تست‌ها در CI
 - هر push/PR: `vitest run --coverage` (گیت ratchet پوشش) + `vite build` + بیلد ایمیج داکر با smoke تست healthcheck
 - e2e: `npm run test:e2e` (Playwright chromium — در CI با webServer خودکار؛ در حالت لوکال ابتدا `npm run build`)
