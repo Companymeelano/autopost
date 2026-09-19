@@ -9,6 +9,8 @@ on:
         type: string
   push:
     tags: ['*-android']
+  pull_request:
+    branches: ['arena/**', 'main']
 
 jobs:
   apk:
