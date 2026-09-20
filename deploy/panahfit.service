@@ -1,0 +1,22 @@
+# systemd unit نمونه — نصب: cp deploy/panahfit.service /etc/systemd/system/ && systemctl enable --now panahfit
+[Unit]
+Description=PanahFit CMS (API + static dist)
+After=network.target
+
+[Service]
+Type=simple
+User=panahfit
+Group=panahfit
+WorkingDirectory=/opt/panahfit
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning server/index.js
+EnvironmentFile=/opt/panahfit/.env
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/panahfit/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,49 @@
+{
+  "name": "autopost-panahfit-cms",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.6.9",
+    "@capacitor/cli": "^7.6.9",
+    "@capacitor/core": "^7.6.9",
+    "chart.js": "4.4.7",
+    "pinia": "2.3.0",
+    "vue": "3.5.13",
+    "vue-router": "4.5.0"
+  },
+  "devDependencies": {
+    "@fontsource/vazirmatn": "^5.3.0",
+    "@fortawesome/fontawesome-free": "^7.3.1",
+    "@playwright/test": "^1.63.0",
+    "@vitejs/plugin-vue": "5.2.1",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vue/test-utils": "2.4.6",
+    "jsdom": "25.0.1",
+    "vite": "6.0.7",
+    "vitest": "2.1.8"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "server": "node --disable-warning=ExperimentalWarning server/index.js",
+    "server:dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
+    "db:reset": "node server/reset.js",
+    "start": "npm run build && npm run server",
+    "test:cov": "vitest run --coverage.enabled",
+    "test:e2e": "playwright test",
+    "db:backup": "node --disable-warning=ExperimentalWarning server/backup.js",
+    "android:prepare": "npm run build && npx cap add android && npx cap sync android",
+    "android:apk": "npm run android:prepare && node scripts/set-apk-icon.mjs && cd android && ./gradlew assembleDebug",
+    "build:shop": "VITE_APP=shop vite build",
+    "build:admin": "VITE_APP=admin vite build",
+    "android:shop": "npm run build:shop && node scripts/set-capacitor-variant.mjs shop && npx cap add android && npx cap sync android && node scripts/set-apk-icon.mjs && cd android && ./gradlew assembleDebug",
+    "android:admin": "npm run build:admin && node scripts/set-capacitor-variant.mjs admin && npx cap add android && npx cap sync android && node scripts/set-apk-icon.mjs && cd android && ./gradlew assembleDebug"
+  }
+}
