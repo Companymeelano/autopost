@@ -40,6 +40,10 @@
     "test:e2e": "playwright test",
     "db:backup": "node --disable-warning=ExperimentalWarning server/backup.js",
     "android:prepare": "npm run build && npx cap add android && npx cap sync android",
-    "android:apk": "npm run android:prepare && cd android && ./gradlew assembleDebug"
+    "android:apk": "npm run android:prepare && node scripts/set-apk-icon.mjs && cd android && ./gradlew assembleDebug",
+    "build:shop": "VITE_APP=shop vite build",
+    "build:admin": "VITE_APP=admin vite build",
+    "android:shop": "npm run build:shop && node scripts/set-capacitor-variant.mjs shop && npx cap add android && npx cap sync android && node scripts/set-apk-icon.mjs && cd android && ./gradlew assembleDebug",
+    "android:admin": "npm run build:admin && node scripts/set-capacitor-variant.mjs admin && npx cap add android && npx cap sync android && node scripts/set-apk-icon.mjs && cd android && ./gradlew assembleDebug"
   }
 }

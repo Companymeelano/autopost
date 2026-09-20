@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'در صورت پرکردن، APK روی Release همان تگ هم آپلود می‌شود (مثلاً v1.0-android)'
+        description: 'تگ Release برای آپلود APKها (مثلاً v1.1-android). خالی = فقط artifact'
         required: false
         type: string
   push:
@@ -14,8 +14,12 @@ on:
 
 jobs:
   apk:
-    name: build debug APK
+    name: ${{ matrix.variant }} APK
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [shop, admin]
     steps:
       - uses: actions/checkout@v4
 
@@ -29,23 +33,25 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: install + web build
+      - name: web build (variant mode)
         run: |
           npm ci
-          npm run build
+          VITE_APP=${{ matrix.variant }} npm run build
 
-      - name: capacitor android project
+      - name: capacitor project
         run: |
+          node scripts/set-capacitor-variant.mjs ${{ matrix.variant }}
           npx cap add android
           npx cap sync android
+          node scripts/set-apk-icon.mjs
 
-      - name: stamp version
+      - name: stamp version + label
         working-directory: android
         run: |
           TAG="${{ github.event.inputs.release_tag }}"
           [ -z "$TAG" ] && TAG="${GITHUB_REF_NAME}"
           [ -z "$TAG" ] && TAG="v0.0-dev"
-          VERSION="${TAG#v}"
+          VERSION="${TAG#v}-${{ matrix.variant }}-b${GITHUB_RUN_NUMBER}"
           sed -i "s/versionCode .*/versionCode ${GITHUB_RUN_NUMBER}/" app/build.gradle
           sed -i "s/versionName \".*\"/versionName \"$VERSION\"/" app/build.gradle
           grep -E "versionCode|versionName" app/build.gradle
@@ -54,26 +60,38 @@ jobs:
         working-directory: android
         run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
 
-      - name: collect APK
+      - name: collect
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk panahfit.apk
-          ls -lah panahfit.apk
-          sha256sum panahfit.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk "panahfit-${{ matrix.variant }}.apk"
+          ls -lah panahfit-*.apk && sha256sum panahfit-*.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: panahfit-apk
-          path: panahfit.apk
+          name: panahfit-${{ matrix.variant }}-apk
+          path: panahfit-${{ matrix.variant }}.apk
 
-      - name: attach to GitHub Release
-        if: ${{ github.event.inputs.release_tag != '' || startsWith(github.ref, 'refs/tags/') }}
+  publish:
+    name: attach APKs to Release
+    needs: apk
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: panahfit-*-apk
+          merge-multiple: true
+          path: out
+      - name: release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ github.event.inputs.release_tag }}"
           [ -z "$TAG" ] && TAG="${GITHUB_REF_NAME}"
+          ls -lah out/
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" panahfit.apk --clobber
+            gh release upload "$TAG" out/panahfit-shop.apk out/panahfit-admin.apk --clobber
           else
-            gh release create "$TAG" panahfit.apk --title "پناه‌فیت اندروید $TAG" --notes "APK نسخه debug — اپ PWA/CMS پناه‌فیت (Capacitor). پس از نصب، آدرس سرور پناه‌فیت خود را در صفحه اول وارد کنید."
+            gh release create "$TAG" out/panahfit-shop.apk out/panahfit-admin.apk \
+              --title "پناه‌فیت اندروید $TAG (فروشگاه + پنل)" \
+              --notes "دو APK مستقل: **panahfit-shop.apk** (فقط فروشگاه با چیدمان بهینه‌شده محصولات) و **panahfit-admin.apk** (همه بخش‌های مدیریت: داشبورد، محصولات، محتوا/پست‌ها، قیمت‌گذاری، پیام‌ها، AI، سفارش‌ها، گزارش مالی، تراکنش‌ها، ممیزی، کاربران، تنظیمات). پس از اولین اجرا آدرس سرور پناه‌فیت را وارد کنید — هر دو اپ به همان سرور وصل و همگام‌اند. build debug با signing پیش‌فرض."
           fi

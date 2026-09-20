@@ -85,6 +85,11 @@ function addToCart(go = false) {
           <button class="pd-add" :disabled="product.stock <= 0" @click="addToCart(false)"><i class="fas fa-cart-plus"></i> {{ t('prod.add') }}</button>
           <button class="pd-buynow" :disabled="product.stock <= 0" @click="addToCart(true)">{{ t('prod.buynow') }}</button>
         </div>
+        <div class="pd-trust" aria-hidden="true">
+          <span><i class="fas fa-bolt"></i> {{ t('shop.fast') }}</span>
+          <span><i class="fas fa-shield-heart"></i> {{ t('shop.guarantee') }}</span>
+          <span><i class="fas fa-lock"></i> {{ t('shop.secure') }}</span>
+        </div>
         <div v-if="tags.length" class="pd-tags">
           <span v-for="t in tags" :key="t" class="pd-tag">{{ t }}</span>
         </div>
@@ -135,6 +140,9 @@ function addToCart(go = false) {
 .pd-add:hover:not(:disabled) { box-shadow: 0 0 16px rgba(0, 255, 170, 0.3); }
 .pd-buynow { background: #00ffaa; color: #04110b; border: 0; padding: 11px 18px; border-radius: 10px; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 0 18px rgba(0, 255, 170, 0.35); }
 .pd-add:disabled, .pd-buynow:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+.pd-trust { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.pd-trust span { font-size: .7rem; color: #9ad7ff; background: #0d0d18; border: 1px solid #22223a; border-radius: 999px; padding: 5px 11px; }
+.pd-trust i { color: #00ffaa; margin-inline-end: 5px; }
 .pd-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
 .pd-tag { font-size: .72rem; color: #9ad7ff; background: rgba(61, 139, 255, 0.1); border: 1px solid rgba(61, 139, 255, 0.3); padding: 3px 9px; border-radius: 999px; }
 .pd-similar h2 { font-size: 1.05rem; margin: 0 0 12px; }

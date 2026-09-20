@@ -10,3 +10,5 @@ dist/
 # فاز ۶ — پروژه اندروید در CI تولید می‌شود (npx cap add android)
 /android
 *.apk
+
+.capacitor-variant

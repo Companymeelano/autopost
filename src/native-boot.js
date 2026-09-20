@@ -6,6 +6,14 @@
 // اثری ندارد.
 // ============================================================================
 const KEY = 'pf.server.v1'
+import { modeQuery } from './app-mode'
+
+/** افزودن app=shop/admin به آدرس مقصد تا حالت نسخه روی سرور هم اعمال شود */
+function withMode(url) {
+  const mq = modeQuery()
+  if (!mq) return url
+  return url + (url.includes('?') ? '&' : '') + mq.slice(1)
+}
 
 export function isNativeApp(win = window) {
   const w = win
@@ -70,13 +78,13 @@ export function nativeBoot({ win = window, doc = document, storage = window.loca
   const base = getServerBase(storage)
   if (base && win.location.origin + win.location.pathname.replace(/\/$/, '') !== base) {
     const path = win.location.pathname + win.location.search + win.location.hash
-    win.location.replace(base + (path === '/' ? '' : path))
+    win.location.replace(withMode(base + (path === '/' ? '' : path)))
     return false
   }
   if (base) return true // روی سرور ریموت باز شده؛ مثل مرورگر عادی رفتار کن
   renderBootForm(doc, (raw) => {
     const n = setServerBase(raw, storage)
-    if (n) win.location.replace(n)
+    if (n) win.location.replace(withMode(n))
     return n
   })
   return false

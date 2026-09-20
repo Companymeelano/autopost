@@ -10,6 +10,8 @@ import { useI18n } from '../../i18n'
 const cart = useCart()
 const site = useSite()
 const route = useRoute()
+import { appMode } from '../../app-mode'
+const isShopApp = appMode() === 'shop'
 const { t, lang, toggle } = useI18n()
 const nav = [
   { to: '/', key: 'nav.home' },
@@ -56,7 +58,7 @@ function cmsToast(msg, bad) { import('../../stores/cms').then(({ useCms }) => us
           <i class="fas fa-shopping-cart"></i>
           <span v-if="cartCount" class="cart-badge">{{ toFa(cartCount) }}</span>
         </RouterLink>
-        <RouterLink to="/login" class="site-admin" title="پنل مدیریت"><i class="fas fa-user-shield"></i></RouterLink>
+        <RouterLink v-if="!isShopApp" to="/login" class="site-admin" title="پنل مدیریت"><i class="fas fa-user-shield"></i></RouterLink>
       </div>
     </header>
 

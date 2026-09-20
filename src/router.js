@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { appMode } from './app-mode'
 import { useCms } from './stores/cms'
 import LoginView from './views/LoginView.vue'
 import DashboardView from './views/DashboardView.vue'
@@ -38,7 +39,14 @@ export const routes = [
 ]
 
 export function makeRouter() {
-  const router = createRouter({ history: createWebHistory(), routes })
+  // فاز ۶.۵ — نسخه‌های shop/admin فقط مسیرهای خودشان را دارند (APKهای مستقل)
+  let rs = routes
+  const mode = appMode()
+  if (mode === 'shop' || mode === 'admin') {
+    rs = routes.filter((r) => !r.path.startsWith('/:pathMatch') && (mode === 'shop' ? r.meta?.site : !r.meta?.site))
+    rs.push({ path: '/:pathMatch(.*)*', redirect: mode === 'shop' ? '/' : '/dashboard' })
+  }
+  const router = createRouter({ history: createWebHistory(), routes: rs })
   // گارد احراز هویت — هر مسیر auth بدون لاگین به /login با query برمی‌گردد
   router.beforeEach((to) => {
     const cms = useCms()
