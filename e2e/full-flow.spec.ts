@@ -16,7 +16,7 @@ test('full admin flow', async ({ page }) => {
   await page.selectOption('#p-cat', 'legging')
   await page.fill('#p-price', '123000')
   await page.fill('#p-stock', '7')
-  await page.click('button:has-text("ذخیره محصول")')
+  await page.click('button[type="submit"]:has-text("ذخیره و انتشار")')
   await expect(page).toHaveURL(/\/products/)
   await expect(page.getByText('لگ e2e تست').first()).toBeVisible()
 

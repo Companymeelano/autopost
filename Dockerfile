@@ -21,7 +21,7 @@ COPY server ./server
 COPY src/data ./src/data
 COPY src/utils ./src/utils
 COPY --from=ui-build /src/dist ./dist
-RUN chown -R app:app /app
+RUN mkdir -p /app/data && chown -R app:app /app
 USER app
 EXPOSE 8787
 VOLUME ["/app/data"]

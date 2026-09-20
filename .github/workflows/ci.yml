@@ -44,10 +44,13 @@ jobs:
           RC=$?
           set -e
           if [ "$RC" -ne 0 ]; then
-            MSG=$(grep -E "failed|Error|Timeout|expect\(|page\.(goto|click|fill)" /tmp/e2e.log | head -12 | tr '\n' '~' | sed 's/:/%3A/g;s/%2525/%25/g;s/~/ /g' | head -c 850)
+            for f in $(find test-results -name error-context.md 2>/dev/null | head -2); do
+              echo "---- error-context: $f"; head -c 700 "$f"
+            done >> /tmp/e2e.log
+            MSG=$(grep -E "failed|Error|Timeout|expect\(|error-context|od-box|od-checking|notfound|Snapshot" /tmp/e2e.log | head -14 | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g' | head -c 900)
             echo "::error title=e2e failed (rc=$RC)::${MSG:-no-matched-lines}"
           fi
-          tail -40 /tmp/e2e.log
+          tail -50 /tmp/e2e.log
           exit $RC
       - uses: actions/upload-artifact@v4
         if: failure()

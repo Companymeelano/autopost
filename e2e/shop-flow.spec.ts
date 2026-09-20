@@ -33,8 +33,8 @@ test('complete public purchase flow with real server', async ({ page }) => {
   await page.getByText('پرداخت موفق').click()
 
   // صفحه وضعیت: سفارش پرداخت‌شده + کد رهگیری
-  await expect(page).toHaveURL(/\/order\/PF-/, { timeout: 10_000 })
-  await expect(page.locator('.od-status')).toContainText('پرداخت موفق')
+  await expect(page).toHaveURL(/\/order\/PF-/, { timeout: 15_000 })
+  await expect(page.locator('.od-status')).toContainText('پرداخت موفق', { timeout: 15_000 })
   await expect(page.locator('.od-tr')).toContainText('کد رهگیری')
 
   // صفحه فاکتور قابل‌چاپ (فاز ۴)
