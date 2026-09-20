@@ -19,17 +19,17 @@ test('full admin flow', async ({ page }) => {
   await page.fill('#p-stock', '7')
   await page.click('button[type="submit"]:has-text("ذخیره و انتشار")')
   await expect(page).toHaveURL(/\/products/)
-  await expect(page.getByText('لگ e2e تست').first()).toBeVisible()
+  await expect(page.locator('tr:has-text("لگ e2e تست")')).toBeVisible()
 
   // رفرش → داده از SQLite برمی‌گردد
   await page.reload()
-  await expect(page.getByText('لگ e2e تست').first()).toBeVisible()
+  await expect(page.locator('tr:has-text("لگ e2e تست")')).toBeVisible()
 
   // حذف با undo
   await page.click('tr:has-text("لگ e2e تست") button:has-text("حذف")')
-  await expect(page.getByText('لگ e2e تست')).toHaveCount(0)
+  await expect(page.locator('tr:has-text("لگ e2e تست")')).toHaveCount(0) // شمارش فقط در جدول؛ toast همان متن را دارد
   await page.click('#toast-stack .toast-item button')
-  await expect(page.getByText('لگ e2e تست').first()).toBeVisible()
+  await expect(page.locator('tr:has-text("لگ e2e تست")')).toBeVisible()
 
   // پرداخت دمو
   await page.click('text=پرداخت و تراکنش‌ها')
