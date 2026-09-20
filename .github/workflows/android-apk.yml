@@ -66,6 +66,11 @@ jobs:
           RC=$?
           set -e
           { echo "<details><summary>gradle log (tail, exit=$RC)</summary>"; echo; echo '```'; tail -c 4200 /tmp/gradle.log; echo; echo '```</details>'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$RC" -ne 0 ]; then
+            MSG=$(grep -E "FAILURE|error:|Caused by|Execution failed|What went wrong" -A2 /tmp/gradle.log | head -c 900 | tr '\n' ' ' | sed 's/%25/%2525/g;s/%0A/ /g' || true)
+            echo "::error title=gradle failed (rc=$RC)::${MSG:0:850}"
+            touch apk-gradle-fail.log && tail -c 200000 /tmp/gradle.log > apk-gradle-fail.log
+          fi
           [ "$RC" -eq 0 ] || exit "$RC" 
 
       - name: collect
@@ -74,9 +79,13 @@ jobs:
           ls -lah panahfit-*.apk && sha256sum panahfit-*.apk
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: panahfit-${{ matrix.variant }}-apk
-          path: panahfit-${{ matrix.variant }}.apk
+          path: |
+            panahfit-${{ matrix.variant }}.apk
+            apk-gradle-fail.log
+          if-no-files-found: warn
 
   publish:
     name: attach APKs to Release

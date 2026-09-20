@@ -15,11 +15,6 @@ for (const d of existsSync(res) ? readdirSync(res) : []) {
     if (existsSync(p)) { copyFileSync(src, p); n++ }
   }
 }
-// fallback برای anydpi خالی‌شده
-if (existsSync(join(res, 'mipmap-anydpi-v26'))) writeFileSync(join(res, 'mipmap-anydpi-v26', 'ic_launcher.xml'),
-`<?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@mipmap/ic_launcher_background"/>
-    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
-</adaptive-icon>`)
+// حذف adaptive icon template → launcher خودش PNG را scale می‌کند (بدون ارجاع شکسته)
+try { rmSync(join(res, 'mipmap-anydpi-v26'), { recursive: true, force: true }); n++ } catch { /* noop */ }
 console.log(`[icon] ${n} فایل آیکون به‌روزرسانی شد`)
