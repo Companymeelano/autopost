@@ -125,7 +125,7 @@ ${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.title)}" style="max-width:3
     let html = shellHtml
     html = html.replace(/<title>[\s\S]*?<\/title>/, '') // عنوان shell حذف می‌شود تا تکراری نشود
     html = html.replace('</head>', (meta || '') + '\n</head>')
-    if (content) html = html.replace(/<div id="app"><\/div>|<div id="app">\s*<\/div>/, `<div id="app">${content}</div>`)
+    if (content) html = html.replace(/<div id="app">[\s\S]*?<\/div>/, `<div id="app">${content}</div>`)
     if (ldJson) html = html.replace('</head>', ldJson + '\n</head>')
     return html
   }

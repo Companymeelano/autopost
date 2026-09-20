@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
-  base: './',
+  base: '/', // فاز ۶.۵ — history router: assetها مطلق (سابقاً './' دوران hash)
   server: {
     host: '0.0.0.0',
     port: 5173,
