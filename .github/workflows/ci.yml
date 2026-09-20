@@ -44,7 +44,7 @@ jobs:
           RC=$?
           set -e
           if [ "$RC" -ne 0 ]; then
-            CTX=$(for f in $(find test-results -name error-context.md 2>/dev/null | head -2); do head -28 "$f"; done | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g;s/#//g' | head -c 3800)
+            CTX=$(for f in $(find test-results -name error-context.md 2>/dev/null | head -2); do awk '/^- (Page|URL)/{p=1} p' "$f" | head -34; echo "===="; done | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g;s/#//g' | head -c 3800)
             echo "::error title=e2e page snapshot::${CTX:0:3800}"
             MSG=$(grep -E "failed|Error|Timeout" /tmp/e2e.log | head -8 | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g' | head -c 850)
             echo "::error title=e2e failed (rc=$RC)::${MSG:-no-matched-lines}"
