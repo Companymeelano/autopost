@@ -46,15 +46,16 @@ jobs:
           node scripts/set-apk-icon.mjs
 
       - name: stamp version + label
-        working-directory: android
+        env:
+          RAW_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
+          VARIANT: ${{ matrix.variant }}
+          RUN_N: ${{ github.run_number }}
         run: |
-          TAG="${{ github.event.inputs.release_tag }}"
-          [ -z "$TAG" ] && TAG="${GITHUB_REF_NAME}"
-          [ -z "$TAG" ] && TAG="v0.0-dev"
-          VERSION="${TAG#v}-${{ matrix.variant }}-b${GITHUB_RUN_NUMBER}"
-          sed -i "s/versionCode .*/versionCode ${GITHUB_RUN_NUMBER}/" app/build.gradle
-          sed -i "s/versionName \".*\"/versionName \"$VERSION\"/" app/build.gradle
-          grep -E "versionCode|versionName" app/build.gradle
+          echo "::group::build.gradle before"
+          ls -la android/app/build.gradle && grep -n version android/app/build.gradle || true
+          echo "::endgroup::"
+          node scripts/stamp-apk-version.mjs "${RAW_TAG:-v0.0}-${VARIANT}-b${RUN_N}" "$RUN_N"
+          echo "apk-stamp done" 
 
       - name: gradle assembleDebug
         working-directory: android
