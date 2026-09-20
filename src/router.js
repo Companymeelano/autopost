@@ -48,8 +48,16 @@ export function makeRouter() {
   }
   const router = createRouter({ history: createWebHistory(), routes: rs })
   // گارد احراز هویت — هر مسیر auth بدون لاگین به /login با query برمی‌گردد
-  router.beforeEach((to) => {
+  let bootAwaited = false
+  router.beforeEach(async (to) => {
     const cms = useCms()
+    // بازیابی نشست پس از ریلود صفحه: تا promise مقداردهی اولیه (GET /auth/me)
+    // حل نشده، گارد نباید به /login بفرستد — وگرنه سشن معتبر «منقضی» به‌نظر می‌رسد.
+    // فقط یک‌بار منتظر می‌مانیم تا ناوبری‌های بعدی سریع بمانند.
+    if (!bootAwaited && cms.ready && (to.meta.auth || to.path === '/login')) {
+      bootAwaited = true
+      try { await cms.ready } catch { /* آفلاین — همان مسیر عادی */ }
+    }
     if (to.meta.auth && !cms.authed) return { path: '/login', query: to.fullPath !== '/dashboard' ? { to: to.fullPath } : {} }
     if (to.path === '/login' && cms.authed) return { path: to.query.to || '/dashboard' }
     return true

@@ -42,6 +42,7 @@ export const useCms = defineStore('cms', () => {
 
   // --- وضعیت نشست و UI ---
   const authed = ref(false)
+  let ready = null // promise مقداردهی اولیه‌ی سرور که main.js ست می‌کند
   const toasts = reactive([])
   let toastSeq = 0
   const modal = reactive({ open: false, title: '', view: null, props: {} })
@@ -446,6 +447,7 @@ export const useCms = defineStore('cms', () => {
   return {
     products, posts, coupons, requests, messages, provinces, settings,
     authed, toasts, modal, online, user, role, perms, sync,
+    get ready() { return ready }, set ready(v) { ready = v },
     initRemote, pullState, pushToServer, pushNow, login, logout, changePassword, generateCaption, can, canEdit,
     toast, dismissToast, runToastAction, openModal, closeModal, persist,
     saveProduct, copyProduct, removeProduct, restoreProduct,

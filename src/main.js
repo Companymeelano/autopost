@@ -21,7 +21,7 @@ if (nativeBoot()) {
 
   // فاز ۲: تشخیص سرور و بازیابی نشست (بدون بلاک‌کردن رندر — UI آفلاین فوری)
   const cms = useCms()
-  cms.initRemote()
+  cms.ready = cms.initRemote() // گارد روتر فقط برای نخستین ناوبری auth این Promise را منتظر می‌ماند
 
   // PWA (فاز ۲.۵): ثبت service worker فقط در production build
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {
