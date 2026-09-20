@@ -8,7 +8,7 @@ test('complete public purchase flow with real server', async ({ page }) => {
 
   // ورود به صفحه محصول و افزودن به سبد
   await page.locator('.prod-card').first().click()
-  await expect(page).toHaveURL(/#\/product\/\d+/)
+  await expect(page).toHaveURL(/\/product\/\d+/)
   await expect(page.locator('.pd-info h1')).toHaveText(firstName)
   await page.locator('.pd-add').click()
 
@@ -21,7 +21,7 @@ test('complete public purchase flow with real server', async ({ page }) => {
 
   // checkout و ثبت سفارش
   await page.locator('.site-cart').click()
-  await expect(page).toHaveURL(/#\/checkout/)
+  await expect(page).toHaveURL(/\/checkout/)
   await page.fill('#ck-buyer', 'ایمان تستی')
   await page.fill('#ck-phone', '09123334455')
   await page.fill('#ck-address', 'تهران، خیابان ولیعصر، کوچه نمونه، پلاک ۱۲')
@@ -33,7 +33,7 @@ test('complete public purchase flow with real server', async ({ page }) => {
   await page.getByText('پرداخت موفق').click()
 
   // صفحه وضعیت: سفارش پرداخت‌شده + کد رهگیری
-  await expect(page).toHaveURL(/#\/order\/PF-/, { timeout: 10_000 })
+  await expect(page).toHaveURL(/\/order\/PF-/, { timeout: 10_000 })
   await expect(page.locator('.od-status')).toContainText('پرداخت موفق')
   await expect(page.locator('.od-tr')).toContainText('کد رهگیری')
 
@@ -43,10 +43,10 @@ test('complete public purchase flow with real server', async ({ page }) => {
 
   // پنل: ورود مدیر و دیدن سفارش + کسر موجودی
   await page.goto('/login')
-  await page.fill('#login-user', 'admin')
-  await page.fill('#login-pass', 'e2e-pass-123')
+  await page.fill('#cms-username', 'admin')
+  await page.fill('#cms-password', 'e2e-pass-123')
   await page.locator('button[type=submit]').click()
-  await expect(page).toHaveURL(/#\/dashboard/, { timeout: 10_000 })
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 })
 
   await page.goto('/orders')
   await expect(page.locator('.cms-table tbody tr').first()).toContainText('PF-')

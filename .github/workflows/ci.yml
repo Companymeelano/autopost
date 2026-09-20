@@ -38,7 +38,17 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Run e2e (server boots via playwright webServer)
-        run: npx playwright test
+        run: |
+          set +e
+          npx playwright test > /tmp/e2e.log 2>&1
+          RC=$?
+          set -e
+          if [ "$RC" -ne 0 ]; then
+            MSG=$(grep -E "failed|Error|Timeout|expect\(|page\.(goto|click|fill)" /tmp/e2e.log | head -12 | tr '\n' '~' | sed 's/:/%3A/g;s/%2525/%25/g;s/~/ /g' | head -c 850)
+            echo "::error title=e2e failed (rc=$RC)::${MSG:-no-matched-lines}"
+          fi
+          tail -40 /tmp/e2e.log
+          exit $RC
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -55,6 +65,13 @@ jobs:
       - name: Container healthcheck smoke
         run: |
           docker run -d --name pf -p 8787:8787 panahfit-cms:ci
-          for i in $(seq 1 20); do curl -sf http://127.0.0.1:8787/api/health && break; sleep 1; done
-          curl -sf http://127.0.0.1:8787/api/health | grep -q '"ok":true'
+          ok=""
+          for i in $(seq 1 25); do curl -sf http://127.0.0.1:8787/api/health > /tmp/health.json && { ok=1; break; }; sleep 1; done
+          if [ -z "$ok" ] || ! grep -q '"ok":true' /tmp/health.json; then
+            LOGS=$(docker logs pf 2>&1 | tail -25 | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g' | head -c 850)
+            echo "::error title=container not healthy::${LOGS:-empty}"
+            docker rm -f pf
+            exit 1
+          fi
+          cat /tmp/health.json
           docker rm -f pf

@@ -6,7 +6,7 @@ test('full admin flow', async ({ page }) => {
   await page.fill('#cms-username', 'admin')
   await page.fill('#cms-password', 'e2e-pass-123')
   await page.click('button[type=submit]')
-  await expect(page).toHaveURL(/#\/dashboard/)
+  await expect(page).toHaveURL(/\/dashboard/)
   await expect(page.getByText('درآمد کل')).toBeVisible()
 
   // ساخت محصول
@@ -17,7 +17,7 @@ test('full admin flow', async ({ page }) => {
   await page.fill('#p-price', '123000')
   await page.fill('#p-stock', '7')
   await page.click('button:has-text("ذخیره محصول")')
-  await expect(page).toHaveURL(/#\/products/)
+  await expect(page).toHaveURL(/\/products/)
   await expect(page.getByText('لگ e2e تست').first()).toBeVisible()
 
   // رفرش → داده از SQLite برمی‌گردد
