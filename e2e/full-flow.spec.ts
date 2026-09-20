@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 
 // سناریوی کامل: لاگین → ساخت محصول → رفرش (ماندگاری DB) → حذف با undo → پرداخت دمو
 test('full admin flow', async ({ page }) => {
+  page.on('dialog', (d) => d.accept()) // confirmهای حذف/بازگشت را مرورگر خودکار تأیید کند
   await page.goto('/login')
   await page.fill('#cms-username', 'admin')
   await page.fill('#cms-password', 'e2e-pass-123')

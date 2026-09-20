@@ -2,6 +2,8 @@
 import { test, expect } from '@playwright/test'
 
 test('complete public purchase flow with real server', async ({ page }) => {
+  page.on('dialog', (d) => d.accept()) // confirmهای حذف/بازگشت را مرورگر خودکار تأیید کند
+
   await page.goto('/')
   await expect(page.locator('.prod-card')).not.toHaveCount(0)
   const firstName = await page.locator('.prod-card h3').first().innerText()
