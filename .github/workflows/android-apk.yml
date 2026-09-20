@@ -59,7 +59,14 @@ jobs:
 
       - name: gradle assembleDebug
         working-directory: android
-        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+        run: |
+          chmod +x gradlew
+          set +e
+          ./gradlew assembleDebug --no-daemon --stacktrace > /tmp/gradle.log 2>&1
+          RC=$?
+          set -e
+          { echo "<details><summary>gradle log (tail, exit=$RC)</summary>"; echo; echo '```'; tail -c 4200 /tmp/gradle.log; echo; echo '```</details>'; } >> "$GITHUB_STEP_SUMMARY"
+          [ "$RC" -eq 0 ] || exit "$RC" 
 
       - name: collect
         run: |
