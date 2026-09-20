@@ -39,7 +39,7 @@ onMounted(() => {
   }
 })
 
-function save() {
+async function save() {
   if (notFound.value) return
   errors.value = validateProduct({ title: form.title, cat: form.cat, price: form.price, stock: form.stock })
   if (Object.keys(errors.value).length) {
@@ -53,6 +53,7 @@ function save() {
     features: form.features.filter((f) => f.on).map((f) => f.label),
     meta: { desc: form.metaDesc, hashtags: form.hashtags },
   }, editId.value)
+  await cms.flushSave() // سرور منبع حقیقت است؛ ریلود فوری نباید تغییر را گم کند
   cms.toast(`${res.actionType} محصول «${form.title.trim()}» با موفقیت ذخیره شد.`)
   router.push('/products')
 }

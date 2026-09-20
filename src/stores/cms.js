@@ -64,6 +64,20 @@ export const useCms = defineStore('cms', () => {
   }
   watch([products, posts, coupons, requests, messages, provinces, settings], persist, { deep: true })
 
+  // ذخیره صریح («ذخیره و انتشار» و مشابه): عبور از debounce دو مرحله‌ای (۲۵۰+۶۰۰ms)
+  // تا داده پیش از ناوبری/بست‌شدن تب روی سرور بنشیند — ریلود سریع نباید چیزی را ببلعد.
+  async function flushSave() {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null }
+    if (pushTimer) { clearTimeout(pushTimer); pushTimer = null }
+    lsSet(STORAGE_KEY, payloadJson())
+    if (online.value && authed.value) { try { await pushNow(true) } catch { /* sync.status خطا را نشان می‌دهد */ } }
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', () => {
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; lsSet(STORAGE_KEY, payloadJson()) }
+    })
+  }
+
   // --- Toast ---
   function toast(text, error = false, action = null) {
     const id = ++toastSeq
@@ -450,7 +464,7 @@ export const useCms = defineStore('cms', () => {
     get ready() { return ready }, set ready(v) { ready = v },
     initRemote, pullState, pushToServer, pushNow, login, logout, changePassword, generateCaption, can, canEdit,
     toast, dismissToast, runToastAction, openModal, closeModal, persist,
-    saveProduct, copyProduct, removeProduct, restoreProduct,
+    saveProduct, copyProduct, removeProduct, restoreProduct, flushSave,
     savePost, copyPost, removePost, restorePost,
     createCoupon, removeCoupon, restoreCoupon, couponState,
     resolveRequest, replyMessage, saveProvince,

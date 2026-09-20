@@ -60,3 +60,25 @@ describe('گارد نشست پس از ریلود', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/products'))
   }, 10_000)
 })
+
+describe('flushSave — عبور از debounce هنگام ذخیره صریح', () => {
+  it('PUT /state بدون انتظار تایمر بلافاصله صادر می‌شود', async () => {
+    stubServer({ sessionOk: true })
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const cms = useCms()
+    await cms.initRemote()
+    let putBody = null
+    const prev = globalThis.fetch
+    vi.stubGlobal('fetch', vi.fn(async (url, opts = {}) => {
+      if (String(url).includes('/state') && opts.method === 'PUT') { putBody = JSON.parse(opts.body); return jsonOk({ ok: true, rev: 6 }) }
+      return prev(url, opts)
+    }))
+    cms.saveProduct({ title: 'لگ e2e تست', cat: 'legging', price: 123000, stock: 7, desc: '', image: '' })
+    await cms.flushSave() // بدون advance روی تایمرها — debounce را رد می‌کند
+    expect(putBody).toBeTruthy()
+    expect(putBody.products.some((p) => p.title === 'لگ e2e تست')).toBe(true)
+    // localStorage هم به‌روز شده باشد (ریلود بدون سرور هم داده را نگه دارد)
+    expect(JSON.parse(localStorage.getItem('panahfit_cms_v1')).products.some((p) => p.title === 'لگ e2e تست')).toBe(true)
+  }, 10_000)
+})
