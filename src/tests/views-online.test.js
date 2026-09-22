@@ -214,3 +214,79 @@ describe('SettingsView — کارت دیتابیس cPanel (Meelano DB)', () => {
     expect(w.find('#db-btn-test').exists()).toBe(true)
   })
 })
+
+describe('SettingsView — کارت DB: چرخهٔ کامل اعمال/سلامت/ترمیم/مهاجرت', () => {
+  it('test→apply→health→repair→push→pull→disconnect + راهنما', async () => {
+    const calls = []
+    const REAL_CONFIRM = window.confirm
+    window.confirm = () => true
+    stubServer({
+      'GET /db': () => ({ data: { enabled: true, connected: true, syncUsers: true, config: { host: 'db.host', port: 3306, user: 'u', database: 'd', prefix: 'pf_', password: '•' }, version: '8.0.36', lastSyncAt: Date.now(), lastErr: '', pending: 0, running: false, localRev: 2, tablesExpected: 15 } }),
+      'POST /db/test': (b) => { calls.push(['test', b.host]); return { data: { ok: true, version: '8.0.36', existingTables: ['pf_products'] } } },
+      'POST /db/apply': (b) => { calls.push(['apply', !!b.syncUsers, !!b.importLocal]); return { data: { ok: true } } },
+      'GET /db/health': () => ({ data: { enabled: true, prefix: 'pf_', version: '8.0.36', lastSyncAt: 0, lastErr: '', tables: [{ table: 'products', label: 'محصولات', exists: true, status: 'broken', missingColumns: ['pos', 'updated_at'], extraColumns: [], rows: 5 }] } }),
+      'POST /db/repair': (b) => { calls.push(['repair', (b.rebuild || []).join(',')]); return { data: { tables: [{ table: 'products', label: 'محصولات', status: 'ok', missingColumns: [], repaired: 'altered', rows: 5 }] } } },
+      'POST /db/push': () => { calls.push(['push']); return { data: { ok: true, orders: 0, transactions: 0, collections: [] } } },
+      'POST /db/pull': () => { calls.push(['pull']); return { data: { rows: { products: 5, posts: 1, coupons: 0, messages: 0, requests: 0, provinces: 0 }, settings: true } } },
+      'POST /db/disconnect': () => { calls.push(['disconnect']); return { data: { ok: true } } },
+      'GET /state': () => ({ data: { rev: 9, products: [], posts: [], coupons: [], requests: [], messages: [], provinces: [], settings: {} } }),
+    })
+    const w = await mountOnline()
+    await w.vm.$router.push('/settings')
+    await vi.waitFor(() => expect(w.text()).toContain('متصل — همگام زنده'))
+    await w.find('#db-btn-test').trigger('click')
+    await vi.waitFor(() => expect(calls.some((c) => c[0] === 'test')))
+    await w.find('#db-btn-apply').trigger('click')
+    await vi.waitFor(() => expect(calls.some((c) => c[0] === 'apply' && c[1] === true)))
+    await w.find('#db-btn-health').trigger('click')
+    await vi.waitFor(() => expect(w.text()).toContain('ناسازگار'))
+    expect(w.text()).toContain('ستون‌های جاافتاده')
+    await w.find('#db-btn-repair').trigger('click')
+    await vi.waitFor(() => expect(w.text()).toContain('اصلاح‌شده'))
+    await w.find('#db-btn-push').trigger('click')
+    await vi.waitFor(() => expect(calls.some((c) => c[0] === 'push')))
+    await w.find('#db-btn-pull').trigger('click')
+    await vi.waitFor(() => expect(calls.some((c) => c[0] === 'pull')))
+    await w.find('#db-btn-off').trigger('click')
+    await vi.waitFor(() => expect(calls.some((c) => c[0] === 'disconnect')))
+    const guide = w.findAll('button').find((b) => b.text().includes('راهنمای سریع'))
+    await guide.trigger('click')
+    await next(w)
+    expect(w.text()).toContain('MySQL® Databases')
+    window.confirm = REAL_CONFIRM
+  })
+})
+
+describe('SettingsView — پشتیبان/بازیابی/تنظیمات', () => {
+  it('دانلود بکاپ JSON، بازیابی از فایل و بازگشت به seed', async () => {
+    const REAL_CONFIRM = window.confirm
+    window.confirm = () => true
+    let saved = ''
+    URL.createObjectURL = () => { saved = 'blob:ok'; return 'blob:x' }
+    URL.revokeObjectURL = () => {}
+    stubServer({})
+    const w = await mountOnline()
+    await w.vm.$router.push('/settings')
+    await next(w)
+    const btns = w.findAll('button')
+    const dl = btns.find((b) => b.text().includes('دانلود فایل پشتیبان'))
+    expect(dl).toBeTruthy()
+    await dl.trigger('click')
+    await next(w)
+    expect(saved).toBe('blob:ok')
+    // reset to seed
+    const reset = w.findAll('button').find((b) => b.text().includes('بازگشت به داده‌ی نمونه'))
+    await reset.trigger('click')
+    await next(w, 3)
+    expect(w.text()).toContain('داده‌ها به حالت نمونه بازگشت')
+    // import file — FileReader path with jsdom File
+    const { useCms } = await import('../stores/cms.js')
+    const payload = useCms().exportPayload() // خود یک JSON-string است
+    const file = new File([payload], 'backup.json', { type: 'application/json' })
+    const input = w.find('input[type="file"]')
+    Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
+    await input.trigger('change')
+    await vi.waitFor(() => expect(w.text()).toContain('بازیابی شد'))
+    window.confirm = REAL_CONFIRM
+  })
+})

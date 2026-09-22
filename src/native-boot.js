@@ -63,7 +63,7 @@ button.ghost{background:#17172c;color:#a9a9d0;box-shadow:inset 0 1px 0 rgba(255,
 .chip.good{color:#39ff8d;border-color:#1c4a36}.chip.bad{color:#ff7a92;border-color:#4a1c2a}
 .row{display:flex;gap:10px;justify-content:center;margin-top:12px}`
 
-function renderBootForm(doc, onConnect, onDemo) {
+export function renderBootForm(doc, onConnect, onDemo) {
   doc.documentElement.dir = 'rtl'
   doc.body.innerHTML = `<div class="b"><div class="logo">⚡</div><h1>میلانو — Meelano</h1>
 <p class="muted">برای اتصال، آدرس پنل/فروشگاه میلانو روی هاست را وارد کنید.<br/>مثال: <b dir="ltr">https://your-domain.ir</b> یا <b dir="ltr">http://192.168.1.50:8787</b></p>

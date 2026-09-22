@@ -191,3 +191,19 @@ describe('BlogView & Contact', () => {
     expect(w.text()).toContain('#9010')
   })
 })
+
+describe('SiteShell actions (Meelano)', () => {
+  it('سوئیچ زبان + چیپ منبع داده + پوش', async () => {
+    stub({})
+    const w = await mountAt('/')
+    expect(w.find('.src-chip').exists()).toBe(true)
+    expect(w.text()).toMatch(/دمو|سرور|MySQL/)
+    await w.find('.site-lang').trigger('click')
+    for (let i = 0; i < 3; i++) await w.vm.$nextTick()
+    expect(document.documentElement.dir).toBe('ltr')
+    await w.find('.site-lang').trigger('click')
+    await w.find('.site-bell').trigger('click')
+    for (let i = 0; i < 3; i++) await w.vm.$nextTick()
+    expect(document.documentElement.dir).toBe('rtl')
+  })
+})
