@@ -9,12 +9,14 @@ const res = 'android/app/src/main/res'
 let n = 0
 import { execSync } from 'node:child_process'
 const SIZES = { mdpi: 48, hdpi: 72, xhdpi: 96, xxhdpi: 144, xxxhdpi: 192 }
-let hasConvert = false
-try { execSync('convert -version', { stdio: 'ignore' }); hasConvert = true } catch { /* fallback */ }
+let IMG = null
+for (const bin of ['magick', 'convert']) { try { execSync(`${bin} -version`, { stdio: 'ignore' }); IMG = bin; break } catch { /* next */ } }
 function render(src2, px, out2, square = true) {
-  if (hasConvert) {
-    const geo = square ? `${px}x${px}` : `${Math.round(px * 1.42)}x${Math.round(px * 1.42)}`
-    execSync(`convert ${src2} -resize ${geo}${square ? '' : ' -gravity center -extent ${px}x${px}'} -strip PNG8:${out2}`, { stdio: 'ignore' })
+  if (IMG) {
+    const geo = `${px}x${px}`
+    const tail = square ? ` -strip PNG8:${out2}` : ` -gravity center -extent ${geo} -strip PNG8:${out2}`
+    execSync(`${IMG} ${src2} -resize ${Math.round(px * (square ? 1 : 1.42))}x${Math.round(px * (square ? 1 : 1.42))}${tail}`, { stdio: 'ignore' })
+    try { if (execSync(`stat -c%s ${out2}`).toString().trim() === '0') throw 0 } catch { copyFileSync(src2, out2) }
     return true
   }
   try { copyFileSync(src2, out2); return true } catch { return false }
