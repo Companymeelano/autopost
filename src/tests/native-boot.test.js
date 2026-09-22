@@ -49,6 +49,18 @@ describe('native-boot', () => {
     expect(nativeBoot({ win: nativeCfg, doc: docFake, storage: mkStorage({ 'pf.server.v1': 'https://panah.fit' }) })).toBe(false)
     expect(replaced.at(-1)).toBe('https://panah.fit')
   })
+
+  it('فاز ۷.۵ — روی سرور اتصال‌یافته: بدون اتمام ویزارد → /connect؛ با pf.connect.done → رفتار عادی', () => {
+    const rep = []
+    const win = { location: { origin: 'https://panah.fit', pathname: '/', search: '', hash: '', replace: (x) => rep.push(x) }, navigator: { userAgent: 'PanahFitApp' } }
+    const doc = { documentElement: { dir: '' }, body: { innerHTML: '' }, getElementById: () => ({ value: '', addEventListener() {}, focus() {} }) }
+    expect(nativeBoot({ win, doc, storage: mkStorage({ 'pf.server.v1': 'https://panah.fit' }) })).toBe(false)
+    expect(rep.at(-1)).toContain('/connect')
+    expect(doc.body.innerHTML).toBe('') // فرم بوت نشان داده نشد؛ مستقیم ویزارد
+    rep.length = 0
+    expect(nativeBoot({ win, doc, storage: mkStorage({ 'pf.server.v1': 'https://panah.fit', 'pf.connect.done': '1' }) })).toBe(true)
+    expect(rep).toHaveLength(0)
+  })
 })
 
 describe('renderBootForm — اتصال + بررسی سلامت + دمو', () => {

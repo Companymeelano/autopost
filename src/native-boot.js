@@ -108,7 +108,16 @@ export function nativeBoot({ win = window, doc = document, storage = window.loca
     win.location.replace(withMode(base + (path === '/' ? '' : path)))
     return false
   }
-  if (base) return true // روی سرور ریموت باز شده؛ مثل مرورگر عادی رفتار کن
+  if (base) {
+    // فاز ۷.۵ — اولین اجرای اپ بعد از اتصال: ویزارد کامل اتصال (سرور ← ورود ← دیتابیس cPanel)
+    let connectDone = false
+    try { connectDone = storage.getItem('pf.connect.done') === '1' } catch { /* noop */ }
+    if (!connectDone) {
+      win.location.replace(withMode(base + '/connect'))
+      return false
+    }
+    return true // روی سرور ریموت باز شده؛ مثل مرورگر عادی رفتار کن
+  }
   renderBootForm(doc,
     (raw) => { const n = setServerBase(raw, storage); if (n) win.location.replace(withMode(n)); return n },
     () => { try { storage.setItem('pf.demo', '1') } catch { /* noop */ } doc.body.innerHTML = '<div class="b"><h1>🧪 حالت دمو</h1><p class="muted">در حال بارگذاری نسخه نمایشی میلانو…</p></div>'; setTimeout(() => win.location.reload(), 400) })

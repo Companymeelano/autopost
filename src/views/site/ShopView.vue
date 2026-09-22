@@ -8,6 +8,8 @@ import { useCart } from '../../stores/cart'
 import { useCms } from '../../stores/cms'
 import { formatPrice, toFa, CATEGORY_LABELS } from '../../utils/format'
 import { useI18n } from '../../i18n'
+import { isDemoMode, setDemoMode } from '../../app-mode'
+if (isDemoMode()) setDemoMode(true) // باز کردن /?demo=1 روی فروشگاه = فعال‌سازی حالت دمو
 
 const site = useSite()
 const cart = useCart()

@@ -22,6 +22,7 @@ export const routes = [
   { path: '/contact', name: 'contact', component: () => import('./views/site/ContactView.vue'), meta: { site: true, title: 'تماس با ما' } },
   { path: '/orders', name: 'orders', component: () => import('./views/OrdersView.vue'), meta: { auth: true, nav: 'orders', title: 'مدیریت سفارش‌ها' } },
   { path: '/login', name: 'login', component: LoginView },
+  { path: '/connect', name: 'connect', component: () => import('./views/site/ConnectView.vue'), meta: { site: true, title: 'اتصال به هاست' } },
   { path: '/dashboard', name: 'dashboard', component: DashboardView, meta: { auth: true, nav: 'dashboard', title: 'داشبورد و گزارش‌گیری' } },
   { path: '/products', name: 'products', component: ProductsView, meta: { auth: true, nav: 'products', title: 'مدیریت محصولات' } },
   { path: '/products/new', name: 'product-new', component: ProductEditView, meta: { auth: true, nav: 'products', title: 'افزودن محصول' } },
