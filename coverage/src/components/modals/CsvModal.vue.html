@@ -1,0 +1,496 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for src/components/modals/CsvModal.vue</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">src/components/modals</a> CsvModal.vue</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">31.81% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>35/110</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/10</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">31.81% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>35/110</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >&lt;script setup&gt;</span></span>
+<span class="cstat-no" title="statement not covered" >// ورود/خروجی CSV محصولات — dry-run preview با همان اعتبارسنجی فارسی فرم‌ها</span>
+<span class="cstat-no" title="statement not covered" >import { ref, computed } from 'vue'</span>
+<span class="cstat-no" title="statement not covered" >import { useCms } from '../../stores/cms'</span>
+<span class="cstat-no" title="statement not covered" >import { productsToCsv, parseCsv, mapCsvRows, applyCsvItems } from '../../utils/csv'</span>
+<span class="cstat-no" title="statement not covered" >import { toFa } from '../../utils/format'</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >const cms = useCms()</span>
+<span class="cstat-no" title="statement not covered" >const emit = defineEmits(['done'])</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >const tab = ref('import')</span>
+<span class="cstat-no" title="statement not covered" >const items = ref(null)</span>
+<span class="cstat-no" title="statement not covered" >const fileError = ref('')</span>
+<span class="cstat-no" title="statement not covered" >const applying = ref(false)</span>
+<span class="cstat-no" title="statement not covered" >const textarea = ref('')</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >const validItems = computed(() =&gt; (items.value || []).filter((x) =&gt; !Object.keys(x.errors).length))</span>
+<span class="cstat-no" title="statement not covered" >const invalidCount = computed(() =&gt; (items.value || []).length - validItems.value.length)</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >const SAMPLE = 'عنوان,دسته,قیمت,موجودی\nلگ یوگا بنفش,لگینگ,390000,25'</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async function onFile(ev) {</span></span>
+<span class="cstat-no" title="statement not covered" >  const file = ev.target.files?.[0]</span>
+<span class="cstat-no" title="statement not covered" >  ev.target.value = ''</span>
+<span class="cstat-no" title="statement not covered" >  fileError.value = ''</span>
+<span class="cstat-no" title="statement not covered" >  if (!file) return</span>
+<span class="cstat-no" title="statement not covered" >  if (file.size &gt; 4 * 1024 * 1024) { fileError.value = 'حجم فایل CSV نباید بیشتر از ۴ مگابایت باشد.'; return }</span>
+<span class="cstat-no" title="statement not covered" >  const text = await file.text()</span>
+<span class="cstat-no" title="statement not covered" >  textarea.value = text</span>
+<span class="cstat-no" title="statement not covered" >  parseText(text)</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function parseText(text) {</span></span>
+<span class="cstat-no" title="statement not covered" >  fileError.value = ''</span>
+<span class="cstat-no" title="statement not covered" >  const r = mapCsvRows(parseCsv(text || ''), cms.products.map((p) =&gt; p.id))</span>
+<span class="cstat-no" title="statement not covered" >  if (r.error) { fileError.value = r.error; items.value = null; return }</span>
+<span class="cstat-no" title="statement not covered" >  items.value = r.items</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function doExport() {</span></span>
+<span class="cstat-no" title="statement not covered" >  try {</span>
+<span class="cstat-no" title="statement not covered" >    const blob = new Blob([productsToCsv(cms.products)], { type: 'text/csv;charset=utf-8' })</span>
+<span class="cstat-no" title="statement not covered" >    const url = URL.createObjectURL(blob)</span>
+<span class="cstat-no" title="statement not covered" >    const a = document.createElement('a')</span>
+<span class="cstat-no" title="statement not covered" >    a.href = url</span>
+<span class="cstat-no" title="statement not covered" >    a.download = `panahfit-products-${new Date().toISOString().slice(0, 10)}.csv`</span>
+<span class="cstat-no" title="statement not covered" >    document.body.appendChild(a)</span>
+<span class="cstat-no" title="statement not covered" >    a.click()</span>
+<span class="cstat-no" title="statement not covered" >    a.remove()</span>
+<span class="cstat-no" title="statement not covered" >    setTimeout(() =&gt; URL.revokeObjectURL(url), 1000)</span>
+<span class="cstat-no" title="statement not covered" >    cms.toast('فایل CSV ساخته شد.')</span>
+<span class="cstat-no" title="statement not covered" >  } catch {</span>
+<span class="cstat-no" title="statement not covered" >    cms.toast('ساخت CSV ناموفق بود.', true)</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function apply() {</span></span>
+<span class="cstat-no" title="statement not covered" >  if (!validItems.value.length || applying.value) return</span>
+<span class="cstat-no" title="statement not covered" >  applying.value = true</span>
+<span class="cstat-no" title="statement not covered" >  const summary = applyCsvItems(cms, validItems.value)</span>
+<span class="cstat-no" title="statement not covered" >  applying.value = false</span>
+<span class="cstat-no" title="statement not covered" >  emit('done')</span>
+<span class="cstat-no" title="statement not covered" >  cms.toast(`CSV اعمال شد: ${toFa(summary.created)} افزودن، ${toFa(summary.updated)} به‌روزرسانی${invalidCount.value ? ` — ${toFa(invalidCount.value)} ردیف نامعتبر رد شد` : ''}.`)</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&lt;/script&gt;
+&nbsp;
+&lt;template&gt;
+<span class="cstat-no" title="statement not covered" >  &lt;div&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;div class="tabs-mini" role="tablist" aria-label="حالت CSV"&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;button role="tab" :aria-selected="tab === 'import'" :class="{ active: tab === 'import' }" @click<span class="fstat-no" title="function not covered" >="tab = 'import'"&gt;و</span>رود از CSV&lt;/button&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;button role="tab" :aria-selected="tab === 'export'" :class="{ active: tab === 'export' }" @click<span class="fstat-no" title="function not covered" >="tab = 'export'"&gt;خ</span>روجی CSV&lt;/button&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;/div&gt;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    &lt;template v-if="tab === 'export'"&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;p class="csv-hint"&gt;</span>
+<span class="cstat-no" title="statement not covered" >        خروجی شامل {{ toFa(cms.products.length) }} محصول با ستون‌های شناسه، عنوان، دسته، قیمت، موجودی، فروش و توضیحات است</span>
+        (BOM برای باز شدن صحیح فارسی در Excel).
+<span class="cstat-no" title="statement not covered" >      &lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;button class="cms-btn" @click="doExport"&gt;&lt;i class="fas fa-file-csv"&gt;&lt;/i&gt; دانلود فایل CSV&lt;/button&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;/template&gt;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    &lt;template v-else&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;p class="csv-hint"&gt;</span>
+        فایل CSV با هدرِ ستون‌های فارسی یا انگلیسی انتخاب کنید — یا متن را مستقیم بچسبانید.
+        هیچ داده‌ای تا تأیید پیش‌نمایش اعمال نمی‌شود. نمونه هدر:
+<span class="cstat-no" title="statement not covered" >        &lt;code dir="ltr" class="csv-sample"&gt;{{ SAMPLE.split('\n')[0] }}&lt;/code&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;label class="cms-btn" style="width:auto;display:inline-block;cursor:pointer;"&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;i class="fas fa-upload"&gt;&lt;/i&gt; انتخاب فایل CSV</span>
+<span class="cstat-no" title="statement not covered" >        &lt;input type="file" accept=".csv,text/csv" style="display:none;" @change="onFile" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;/label&gt;</span>
+      &lt;textarea v-model="textarea" class="cms-input csv-ta" dir="ltr" rows="5"
+                placeholder="عنوان,دسته,قیمت,موجودی&amp;#10;..." @change<span class="fstat-no" title="function not covered" >="parseText(textarea)" @i</span>nput<span class="fstat-no" title="function not covered" >="items = null"&gt;&lt;/textarea&gt;</span>
+      &lt;button v-if="textarea" class="cms-btn" style="width:auto;padding:7px 12px;margin-top:6px;" @click<span class="fstat-no" title="function not covered" >="parseText(textarea)"&gt;</span>
+        &lt;i class="fas fa-magic"&gt;&lt;/i&gt; پیش‌نمایش
+      &lt;/button&gt;
+<span class="branch-0 cbranch-no" title="branch not covered" >      &lt;p v-if="fileError" class="field-error" role="alert"&gt;{{ fileError }}&lt;/p&gt;</span>
+&nbsp;
+      &lt;div v-if="items" class="csv-preview"&gt;
+        &lt;p style="font-size:.85rem;margin:0;"&gt;
+          &lt;span class="status-chip chip-green"&gt;{{ toFa(validItems.length) }} ردیف معتبر&lt;/span&gt;
+          &lt;span v-if="invalidCount" class="status-chip" style="background:rgba(248,113,113,.15);color:#f87171;"&gt;{{ toFa(invalidCount) }} نامعتبر&lt;/span&gt;
+        &lt;/p&gt;
+        &lt;div class="table-scroll-wrap" style="max-height:260px;overflow:auto;"&gt;
+          &lt;table class="cms-table"&gt;
+            &lt;thead&gt;&lt;tr&gt;&lt;th&gt;خط&lt;/th&gt;&lt;th&gt;عنوان&lt;/th&gt;&lt;th&gt;دسته&lt;/th&gt;&lt;th&gt;قیمت&lt;/th&gt;&lt;th&gt;وضعیت&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+            &lt;tbody&gt;
+              &lt;tr v-for="it in items" :key="it.line" :style="Object.keys(it.errors).length ? 'color:#f87171;' : ''"&gt;
+                &lt;td&gt;{{ toFa(it.line) }}&lt;/td&gt;
+                &lt;td&gt;{{ it.product.title }}&lt;/td&gt;
+                &lt;td&gt;{{ it.product.cat || '—' }}&lt;/td&gt;
+                &lt;td&gt;{{ it.product.price != null &amp;&amp; it.product.price !== '' ? toFa(it.product.price) : '—' }}&lt;/td&gt;
+                &lt;td&gt;
+                  &lt;span v-if="!Object.keys(it.errors).length" style="color:#6ee7b7;"&gt;&lt;i class="fas fa-check"&gt;&lt;/i&gt; آماده&lt;/span&gt;
+                  &lt;span v-else&gt;{{ Object.values(it.errors).join(' ') }}&lt;/span&gt;
+                &lt;/td&gt;
+              &lt;/tr&gt;
+            &lt;/tbody&gt;
+          &lt;/table&gt;
+        &lt;/div&gt;
+        &lt;button class="cms-btn" style="width:auto;margin-top:10px;" :disabled="!validItems.length || applying" @click="apply"&gt;
+          &lt;i class="fas" :class="applying ? 'fa-spinner fa-spin' : 'fa-plus-circle'"&gt;&lt;/i&gt;
+          افزودن/به‌روزرسانی {{ toFa(validItems.length) }} ردیف
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+&nbsp;
+&lt;style scoped&gt;
+.csv-hint { color: var(--text-muted); font-size: .82rem; margin: 10px 0; }
+.csv-sample { background: rgba(0,0,0,.3); padding: 2px 8px; border-radius: 6px; font-size: .75rem; display: inline-block; }
+.csv-ta { font-family: monospace; font-size: .8rem; margin-top: 8px; }
+.csv-preview { margin-top: 12px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 10px; }
+.tabs-mini { display: flex; gap: 6px; }
+.tabs-mini button { background: none; border: 1px solid rgba(255,255,255,.15); color: var(--text-muted); border-radius: 8px; padding: 6px 14px; cursor: pointer; font: inherit; }
+.tabs-mini button.active { border-color: var(--primary); color: var(--primary); }
+&lt;/style&gt;
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-09-22T04:19:10.055Z
+            </div>
+        <script src="../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../sorter.js"></script>
+        <script src="../../../block-navigation.js"></script>
+    </body>
+</html>
+    

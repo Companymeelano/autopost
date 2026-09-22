@@ -1,0 +1,11 @@
+{
+  "appId": "com.panahfit.app",
+  "appName": "Meelano",
+  "webDir": "dist",
+  "backgroundColor": "#050505",
+  "android": {
+    "allowMixedContent": false,
+    "allowCleartext": true,
+    "overrideUserAgent": "MeelanoApp"
+  }
+}

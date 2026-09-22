@@ -1,0 +1,430 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for src/views/site/OrderView.vue</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">src/views/site</a> OrderView.vue</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>70/70</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">70% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>7/10</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>70/70</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">&lt;script setup&gt;
+// وضعیت سفارش — /#/order/PF-xxx (بعد از بازگشت از درگاه)
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useCart } from '../../stores/cart'
+import { formatPrice, toFa } from '../../utils/format'
+import { useI18n } from '../../i18n'
+&nbsp;
+const route = useRoute()
+const cart = useCart()
+const order = ref(null)
+const err = ref('')
+const loading = ref(true)
+&nbsp;
+const { t } = useI18n()
+const fd = <span class="fstat-no" title="function not covered" >(s) =&gt; { try { const d = new Date(s); return d.toLocaleString('fa-IR', { dateStyle: 'short', timeStyle: 'short' }) } catch { return s } }</span>
+const LABEL = {
+  waiting: ['fa-hourglass-half', '#ffd166'],
+  paid: ['fa-circle-check', '#7dffb0'],
+  shipped: ['fa-truck-fast', '#7dffb0'],
+  cancelled: ['fa-ban', '#ff5a7a'],
+  failed: ['fa-circle-xmark', '#ff5a7a'],
+}
+&nbsp;
+onMounted(async () =&gt; {
+  try {
+    const r = await fetch('/api/public/orders/' + encodeURIComponent(route.params.ref))
+    if (!r.ok) <span class="branch-0 cbranch-no" title="branch not covered" >throw new Error(String((await r.json().catch(() =&gt; ({}))).error || 'سفارش یافت نشد.'))</span>
+    order.value = await r.json()
+    if (['paid', 'shipped'].includes(order.value.status) &amp;&amp; sessionStorage.getItem('pf.pending-order') === order.value.ref) {
+      cart.clear()
+      sessionStorage.removeItem('pf.pending-order')
+    }
+  } <span class="branch-0 cbranch-no" title="branch not covered" >catch (e) { err.value = e.message || 'خطا' } </span>finally { loading.value = false }
+})
+&lt;/script&gt;
+&nbsp;
+&lt;template&gt;
+  &lt;section class="od"&gt;
+    &lt;p v-if="loading"&gt;{{ t('ord.checking') }}&lt;/p&gt;
+    &lt;div v-else-if="err" class="od-box bad"&gt;&lt;i class="fas fa-triangle-exclamation"&gt;&lt;/i&gt; {{ err }}&lt;/div&gt;
+    &lt;div v-else class="od-box"&gt;
+      &lt;i class="fas od-ico" :class="LABEL[order.status]?.[0]" :style="{ color: LABEL[order.status<span class="branch-0 cbranch-no" title="branch not covered" >]?.[1] || '#9a9ab5' }"&gt;&lt;/i&gt;</span>
+      &lt;h1&gt;{{ order.ref }}&lt;/h1&gt;
+      &lt;p class="od-status" :style="{ color: LABEL[order.status]?.[1] }"&gt;{{ t('ord.' + order.status) }}&lt;/p&gt;
+&nbsp;
+      &lt;table class="od-tbl"&gt;
+        &lt;thead&gt;&lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+        &lt;tbody&gt;
+          &lt;tr v-for="it in order.items" :key="it.id"&gt;&lt;td&gt;{{ it.title }}&lt;/td&gt;&lt;td&gt;{{ toFa(it.qty) }}&lt;/td&gt;&lt;td&gt;{{ formatPrice(it.price * it.qty) }}&lt;/td&gt;&lt;/tr&gt;
+        &lt;/tbody&gt;
+      &lt;/table&gt;
+&nbsp;
+      &lt;p&gt;&lt;span&gt;{{ t('ck.total') }}&lt;/span&gt;&lt;b&gt;{{ formatPrice(order.total) }} تومان&lt;/b&gt;&lt;/p&gt;
+      &lt;p v-if="order.discount"&gt;&lt;span&gt;تخفیف {{ order.coupon }}&lt;/span&gt;&lt;b class="cut"&gt;− {{ formatPrice(order.discount) }}&lt;/b&gt;&lt;/p&gt;
+      &lt;p class="od-pay"&gt;&lt;span&gt;{{ t('ck.pay') }}&lt;/span&gt;&lt;b&gt;{{ formatPrice(order.payable) }} تومان&lt;/b&gt;&lt;/p&gt;
+      &lt;p v-if="order.refId" class="od-tr"&gt;&lt;i class="fas fa-fingerprint"&gt;&lt;/i&gt; {{ t('ord.track') }} {{ order.refId }}&lt;/p&gt;
+&nbsp;
+      &lt;section v-if="order.carrier || order.tracking" class="od-ship"&gt;
+        &lt;h3&gt;&lt;i class="fas fa-truck-fast"&gt;&lt;/i&gt; {{ t('ord.shipCard') }}&lt;/h3&gt;
+        &lt;p v-if="order.carrier"&gt;&lt;span&gt;{{ t('ord.carrier') }}:&lt;/span&gt; &lt;b&gt;{{ order.carrier }}&lt;/b&gt;&lt;/p&gt;
+        &lt;p v-if="order.tracking"&gt;&lt;span&gt;{{ t('ord.tracking') }}:&lt;/span&gt; &lt;b dir="ltr" class="mono"&gt;{{ order.tracking }}&lt;/b&gt;&lt;/p&gt;
+      &lt;/section&gt;
+      &lt;section v-if="(order.timeline || []).length" class="od-tl"&gt;
+        &lt;h3&gt;{{ t('ord.timeline') }}&lt;/h3&gt;
+        &lt;ol&gt;
+          &lt;li v-for="(x, i) in order.timeline" :key="i"&gt;
+            &lt;span class="tl-l"&gt;{{ t('ord.tl_' + x.label) || x.label }}&lt;/span&gt;
+            &lt;time dir="ltr"&gt;{{ fd(x.at) }}&lt;/time&gt;
+          &lt;/li&gt;
+        &lt;/ol&gt;
+      &lt;/section&gt;
+&nbsp;
+      &lt;div class="od-actions"&gt;
+        &lt;a v-if="order.status === 'waiting'" class="od-btn" :href="'/gateway?ref=' + encodeURIComponent(order.ref)"&gt;{{ t('ord.continue') }}&lt;/a&gt;
+        &lt;RouterLink v-if="['failed', 'cancelled'].includes(order.status)" class="od-btn" to="/checkout"&gt;{{ t('ord.retry') }}&lt;/RouterLink&gt;
+        &lt;RouterLink class="od-btn ghost" to="/"&gt;{{ t('ord.keep') }}&lt;/RouterLink&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+&lt;/template&gt;
+&nbsp;
+&lt;style scoped&gt;
+.od { display: grid; place-items: center; padding: 30px 0; color: #8a8aa8; }
+.od-box { width: min(560px, 100%); background: #12121f; border: 1px solid #22223a; border-radius: 18px; padding: 26px; text-align: center; color: #eaeaea; }
+.od-box.bad { border-color: #ff005566; color: #ff8aa0; font-size: .9rem; }
+.od-ico { font-size: 2.2rem; margin-bottom: 8px; }
+.od-box h1 { font-size: 1.05rem; margin: 4px 0 2px; letter-spacing: .5px; color: #9ad7ff; }
+.od-status { font-weight: 800; margin: 0 0 14px; }
+.od-tbl { width: 100%; border-collapse: collapse; font-size: .8rem; margin-bottom: 12px; }
+.od-tbl th { color: #66667f; font-weight: 600; text-align: right; padding: 6px; border-bottom: 1px solid #2a2a44; }
+.od-tbl td { padding: 7px 6px; border-bottom: 1px dashed #22223a; }
+.od-box &gt; p { display: flex; justify-content: space-between; font-size: .84rem; color: #b9b9d0; margin: 6px 0; }
+.od-box &gt; p b { color: #eaeaea; }
+.od-box .cut, .od-box .cut b { color: #7dffb0; }
+.od-pay b { color: #00ffaa !important; }
+.od-tr { justify-content: center; color: #8a8aa8; font-size: .76rem; }
+.od-tr i { margin-left: 5px; color: #00ffaa; }
+.od-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+.od-btn { background: #00ffaa; color: #04110b; font-weight: 800; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-size: .84rem; }
+.od-btn.ghost { background: transparent; color: #b9b9d0; border: 1px solid #2a2a44; }
+&lt;/style&gt;
+&nbsp;
+&lt;style scoped&gt;
+.od-ship { text-align: start; background: #0c0c18; border: 1px solid #1f3a33; border-radius: 12px; padding: 12px 14px; margin: 14px 0 4px; }
+.od-ship h3 { margin: 0 0 8px; font-size: .85rem; color: #7dffb0; }
+.od-ship p { margin: 4px 0; font-size: .82rem; display: flex; gap: 8px; align-items: center; }
+.od-ship .mono { background: #101024; padding: 2px 8px; border-radius: 6px; letter-spacing: 1px; }
+.od-tl { text-align: start; margin: 10px 0 4px; }
+.od-tl h3 { margin: 0 0 6px; font-size: .8rem; color: #9ad7ff; }
+.od-tl ol { margin: 0; padding: 0 18px 0 0; list-style: none; }
+.od-tl li { display: flex; justify-content: space-between; gap: 10px; font-size: .78rem; border-inline-start: 2px solid #22223a; padding: 4px 10px; margin: 0; }
+.od-tl .tl-l { color: #c8c8e0; }
+.od-tl time { color: #8a8aa8; font-size: .72rem; }
+&lt;/style&gt;
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-09-22T04:19:10.055Z
+            </div>
+        <script src="../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../sorter.js"></script>
+        <script src="../../../block-navigation.js"></script>
+    </body>
+</html>
+    

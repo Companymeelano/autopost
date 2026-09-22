@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
+
+/data/
+.env
+
+# فاز ۶ — پروژه اندروید در CI تولید می‌شود (npx cap add android)
+/android
+*.apk
+
+.capacitor-variant
+
+/data-live/

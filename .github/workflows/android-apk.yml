@@ -1,0 +1,118 @@
+name: Android APK (Capacitor)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'تگ Release برای آپلود APKها (مثلاً v1.1-android). خالی = فقط artifact'
+        required: false
+        type: string
+  push:
+    tags: ['*-android']
+  pull_request:
+    branches: ['arena/**', 'main']
+
+jobs:
+  apk:
+    name: ${{ matrix.variant }} APK
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [shop, admin]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: web build (variant mode)
+        run: |
+          npm ci
+          VITE_APP=${{ matrix.variant }} npm run build
+
+      - name: capacitor project
+        run: |
+          node scripts/set-capacitor-variant.mjs ${{ matrix.variant }}
+          npx cap add android
+          npx cap sync android
+          node scripts/set-apk-icon.mjs
+
+      - name: stamp version + label
+        env:
+          RAW_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
+          VARIANT: ${{ matrix.variant }}
+          RUN_N: ${{ github.run_number }}
+        run: |
+          echo "::group::build.gradle before"
+          ls -la android/app/build.gradle && grep -n version android/app/build.gradle || true
+          echo "::endgroup::"
+          node scripts/stamp-apk-version.mjs "${RAW_TAG:-v0.0}-${VARIANT}-b${RUN_N}" "$RUN_N"
+          echo "apk-stamp done" 
+
+      - name: gradle assembleDebug
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          set +e
+          ./gradlew assembleDebug --no-daemon --stacktrace > /tmp/gradle.log 2>&1
+          RC=$?
+          set -e
+          { echo "<details><summary>gradle log (tail, exit=$RC)</summary>"; echo; echo '```'; tail -c 4200 /tmp/gradle.log; echo; echo '```</details>'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$RC" -ne 0 ]; then
+            MSG=$(grep -E "FAILURE|error:|Caused by|Execution failed|What went wrong" -A2 /tmp/gradle.log | head -c 900 | tr '\n' ' ' | sed 's/%25/%2525/g;s/%0A/ /g' || true)
+            echo "::error title=gradle failed (rc=$RC)::${MSG:0:850}"
+            touch apk-gradle-fail.log && tail -c 200000 /tmp/gradle.log > apk-gradle-fail.log
+          fi
+          [ "$RC" -eq 0 ] || exit "$RC" 
+
+      - name: collect
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk "meelano-${{ matrix.variant }}.apk"
+          ls -lah meelano-*.apk && sha256sum meelano-*.apk
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: meelano-${{ matrix.variant }}-apk
+          path: |
+            meelano-${{ matrix.variant }}.apk
+            apk-gradle-fail.log
+          if-no-files-found: warn
+
+  publish:
+    name: attach APKs to Release
+    needs: apk
+    if: always() && needs.apk.result == 'success'
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: meelano-*-apk
+          merge-multiple: true
+          path: out
+      - name: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RTAG: ${{ github.event.inputs.release_tag || (github.event_name == 'pull_request' && 'v1.1-android') || github.ref_name }}
+        run: |
+          TAG="$RTAG"
+          [ -z "$TAG" ] && TAG="v1.1-android"
+          ls -lah out/
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --target ${{ github.sha }} \
+              --title "میلانو (Meelano) اندروید $TAG — فروشگاه + پنل" \
+              --notes "دو APK مستقل با برند جدید Meelano: **meelano-shop.apk** (فروشگاه) و **meelano-admin.apk** (پنل کامل + کارت جدید «دیتابیس و اتصال به هاست cPanel/MySQL»: ساخت/تطبیق/ترمیم ۱۵ جدول و همگام‌سازی زنده). آیکون سه‌بعدی جدید میلانو، حالت دمو در هر دو اپ، و تم لاکچری 3D. پس از نصب، آدرس سرور میلانو را وارد کنید — اپ ابتدا سلامت سرور و نوع دیتابیس را بررسی می‌کند. build debug با signing پیش‌فرض؛ برای به‌روزرسانی روی نسخه قبلی، همان appId حفظ شده است." || { echo "::error title=release create failed::gh release create failed for $TAG"; exit 1; }
+          fi
+          gh release upload "$TAG" out/meelano-shop.apk out/meelano-admin.apk --clobber || { echo "::error title=asset upload failed::upload failed"; exit 1; }
+          gh release view "$TAG" --json url --jq '"Release: " + .url'

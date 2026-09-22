@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Unit & integration tests (with coverage gate)
+        run: npx vitest run --coverage.enabled
+      - name: Production build
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: test-build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run e2e (server boots via playwright webServer)
+        run: |
+          set +e
+          npx playwright test > /tmp/e2e.log 2>&1
+          RC=$?
+          set -e
+          if [ "$RC" -ne 0 ]; then
+            CTX=$(for f in $(find test-results -name error-context.md 2>/dev/null | head -2); do tail -n 55 "$f"; echo "===="; done | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g;s/#//g;s/`//g' | head -c 3800)
+            echo "::error title=e2e page snapshot::${CTX:0:3800}"
+            MSG=$(grep -E "failed|Error|Timeout" /tmp/e2e.log | head -8 | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g' | head -c 850)
+            echo "::error title=e2e failed (rc=$RC)::${MSG:-no-matched-lines}"
+          fi
+          tail -50 /tmp/e2e.log
+          exit $RC
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test-build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (smoke)
+        run: docker build -t panahfit-cms:ci .
+      - name: Container healthcheck smoke
+        run: |
+          docker run -d --name pf -p 8787:8787 panahfit-cms:ci
+          ok=""
+          for i in $(seq 1 25); do curl -sf http://127.0.0.1:8787/api/health > /tmp/health.json && { ok=1; break; }; sleep 1; done
+          if [ -z "$ok" ] || ! grep -q '"ok":true' /tmp/health.json; then
+            LOGS=$(docker logs pf 2>&1 | tail -25 | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g' | head -c 850)
+            echo "::error title=container not healthy::${LOGS:-empty}"
+            docker rm -f pf
+            exit 1
+          fi
+          cat /tmp/health.json
+          docker rm -f pf
+
+  mysql-bridge:
+    name: MySQL bridge (cPanel parity)
+    runs-on: ubuntu-24.04
+    needs: test-build
+    services:
+      mysql:
+        image: mysql:8.0
+        env: { MYSQL_ROOT_PASSWORD: root, MYSQL_DATABASE: meelano_test }
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s --health-timeout=5s --health-retries=24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build
+      - name: wait mysql
+        run: for i in $(seq 1 30); do mysqladmin ping -h 127.0.0.1 -uroot -proot 2>/dev/null && break; sleep 2; done
+      - name: live bridge test
+        run: node --disable-warning=ExperimentalWarning scripts/test-mysql-live.mjs 2>&1 | tee /tmp/mx.log
+        env: { PF_TEST_MYSQL_HOST: '127.0.0.1', PF_TEST_MYSQL_PASS: root }
+      - name: annotate on fail
+        if: failure()
+        run: |
+          MSG=$(grep -E "FAIL|FATAL|Error|ALL MYSQL" /tmp/mx.log | head -10 | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g' | head -c 900)
+          echo "::error title=mysql-bridge failed::${MSG:-see log}"
