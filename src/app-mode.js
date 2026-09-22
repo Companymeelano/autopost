@@ -32,3 +32,16 @@ export function modeQuery() {
   const b = buildMode()
   return b === 'web' ? '' : (b === 'shop' ? '?app=shop' : '?app=admin')
 }
+
+// ==================== حالت دمو (Meelano) — داده نمونه بدون نیاز به سرور ====================
+const DEMO_KEY = 'pf.demo'
+export function isDemoMode(storage = globalThis.localStorage) {
+  try {
+    if (storage.getItem(DEMO_KEY) === '1') return true
+    if (globalThis.window && new URLSearchParams(globalThis.window.location?.search || '').get('demo') === '1') { storage.setItem(DEMO_KEY, '1'); return true }
+    return false
+  } catch { return false }
+}
+export function setDemoMode(on, storage = globalThis.localStorage) {
+  try { on ? storage.setItem(DEMO_KEY, '1') : storage.removeItem(DEMO_KEY) } catch { /* noop */ }
+}

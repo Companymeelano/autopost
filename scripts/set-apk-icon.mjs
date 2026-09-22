@@ -1,7 +1,8 @@
 // فاز ۶.۵ — آیکون launcher اندروید از آیکون‌های موجود PWA (بعد از cap add اجرا شود)
 import { copyFileSync, existsSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-const src = 'public/icons/icon-512.png'
+const CANDIDATES = ['build-assets/meelano-icon-1024.png', 'public/icons/icon-512.png']
+const src = CANDIDATES.find((f) => existsSync(f)) || CANDIDATES[1]
 if (!existsSync(src)) { console.log('[icon] منبع آیکون نیست؛ skip'); process.exit(0) }
 if (!existsSync('android')) { console.log('[icon] پوشه android نیست (اول npx cap add android)؛ skip'); process.exit(0) }
 const res = 'android/app/src/main/res'

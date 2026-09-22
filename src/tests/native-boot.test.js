@@ -42,7 +42,8 @@ describe('native-boot', () => {
     const nativeNoCfg = { location: { origin: 'http://localhost', pathname: '/', search: '', hash: '', replace: (x) => replaced.push(x) }, navigator: { userAgent: 'PanahFitApp' } }
     const st1 = mkStorage()
     expect(nativeBoot({ win: nativeNoCfg, doc: docFake, storage: st1 })).toBe(false)
-    expect(docFake.body.innerHTML).toContain('اتصال به سرور')
+    expect(docFake.body.innerHTML).toContain('میلانو')
+    expect(docFake.body.innerHTML).toContain('مشاهده دمو')
 
     const nativeCfg = { location: { origin: 'http://localhost', pathname: '/', search: '', hash: '', replace: (x) => replaced.push(x) }, navigator: { userAgent: 'PanahFitApp' } }
     expect(nativeBoot({ win: nativeCfg, doc: docFake, storage: mkStorage({ 'pf.server.v1': 'https://panah.fit' }) })).toBe(false)

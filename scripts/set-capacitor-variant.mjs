@@ -2,9 +2,9 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 const variant = String(process.argv[2] || 'web').toLowerCase()
 const VARIANTS = {
-  shop: { appId: 'com.panahfit.shop', appName: 'پناه‌فیت | فروشگاه', shortName: 'پناه‌فیت' },
-  admin: { appId: 'com.panahfit.admin', appName: 'پناه‌فیت | مدیریت', shortName: 'پناه‌فیت پنل' },
-  web: { appId: 'com.panahfit.app', appName: 'PanahFit', shortName: 'PanahFit' },
+  shop: { appId: 'com.panahfit.shop', appName: 'میلانو | فروشگاه', shortName: 'میلانو' },
+  admin: { appId: 'com.panahfit.admin', appName: 'میلانو | پنل مدیریت', shortName: 'میلانو پنل' },
+  web: { appId: 'com.panahfit.app', appName: 'Meelano', shortName: 'Meelano' },
 }
 const v = VARIANTS[variant]
 if (!v) { console.error('variant must be shop|admin|web'); process.exit(2) }

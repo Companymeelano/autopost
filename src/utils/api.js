@@ -2,11 +2,13 @@
 // لایه ارتباط با سرور فاز ۲ — health detection + fetch با کوکی same-origin
 // ============================================================================
 const BASE = '/api'
+import { isDemoMode } from '../app-mode.js'
 let online = false
 
 export function isOnline() { return online }
 
 export async function checkOnline() {
+  if (isDemoMode()) { online = false; return false } // دمو: هرگز به سرور وصل نمی‌شویم
   try {
     const r = await fetch(BASE + '/health', { method: 'GET', cache: 'no-store', signal: AbortSignal.timeout(1500) })
     online = r.ok

@@ -1,4 +1,7 @@
 <script setup>
+import { isDemoMode, setDemoMode } from './app-mode'
+const demoMode = isDemoMode()
+function exitDemo() { setDemoMode(false); location.reload() }
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCms } from './stores/cms'
@@ -73,7 +76,7 @@ async function logout() {
   <!-- کاربر واردشده: پوسته پنل -->
   <div v-else id="cms-layout">
     <header>
-      <div class="brand"><i class="fas fa-bolt"></i> PanahFit CMS</div>
+      <div class="brand brand-meelano"><span class="ico3d ico3d-bolt"><i class="fas fa-bolt"></i></span> Meelano <small>CMS</small><span v-if="demoMode" class="demo-chip" title="داده نمونه، بدون سرور"><i class="fas fa-flask"></i> حالت دمو <button type="button" class="demo-exit" @click="exitDemo">خروج</button></span></div>
       <div class="profile-info" style="font-size: 0.9rem; display: flex; align-items: center; gap: 10px;">
         <span class="sync-badge" :class="'sync-' + cms.sync.status" :title="'وضعیت همگام‌سازی: ' + cms.sync.status">
           <i class="fas" :class="syncIcon"></i> {{ syncLabel }}

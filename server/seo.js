@@ -17,7 +17,7 @@ function head({ title, desc, image, url, noindex, extra = '' }) {
   const m = []
   m.push(`<title>${esc(title)}</title>`)
   m.push(`<meta name="description" content="${esc(desc)}">`)
-  m.push(`<meta property="og:site_name" content="پناه‌فیت | PanahFit">`)
+  m.push(`<meta property="og:site_name" content="میلانو | Meelano">`)
   m.push(`<meta property="og:title" content="${esc(title)}">`)
   if (desc) m.push(`<meta property="og:description" content="${esc(desc)}">`)
   m.push(`<meta property="og:type" content="website">`)
@@ -57,7 +57,7 @@ export function createSeoRenderer({ DIST, getState, getRev, settings }) {
   }
 
   function build(pathname, st, base) {
-    const siteName = st.settings.siteName || 'پناه‌فیت'
+    const siteName = st.settings.siteName || 'میلانو'
     let headMeta = '', content = '', ldJson = ''
     const prod = pathname.match(/^\/product\/(\d+)$/)
     const post = pathname.match(/^\/post\/(\d+)$/)
@@ -67,10 +67,10 @@ export function createSeoRenderer({ DIST, getState, getRev, settings }) {
         `<div class="seo-card"><a href="/product/${p.id}"><h2 style="margin:0 0 6px;font-size:1rem">${esc(p.title)}</h2></a><span class="seo-price">${money(p.price)} تومان</span> <span class="seo-muted">${(p.stock ?? 0) > 0 ? 'موجود' : 'ناموجود'}</span>${p.image ? `<br><img src="${esc(p.image)}" alt="${esc(p.title)}" width="160" loading="lazy">` : ''}</div>`).join('')
       content = `<h1>${esc(siteName)} — فروشگاه لباس ورزشی</h1><p class="seo-muted">${esc(st.settings.address || '')}</p>${cards}`
       ldJson = ld({ '@context': 'https://schema.org', '@type': 'WebSite', name: siteName, url: base + '/', potentialAction: { '@type': 'ViewAction', target: base + '/product/1' } })
-      headMeta = head({ title: siteName + ' | فروشگاه لباس ورزشی', desc: 'کالکشن ورزشی پناه‌فیت با تخفیف‌های ویژه و ارسال سریع به سراسر کشور.', url: base + '/' })
+      headMeta = head({ title: siteName + ' | فروشگاه لباس ورزشی میلانو', desc: 'کالکشن ورزشی میلانو با تخفیف‌های ویژه و ارسال سریع به سراسر کشور.', url: base + '/' })
     } else if (prod) {
       const p = st.products.find((x) => Number(x.id) === Number(prod[1]))
-      if (!p) { content = '<h1>محصول یافت نشد</h1>'; headMeta = head({ title: 'محصول یافت نشد — پناه‌فیت', noindex: true }); }
+      if (!p) { content = '<h1>محصول یافت نشد</h1>'; headMeta = head({ title: 'محصول یافت نشد — میلانو', noindex: true }); }
       else {
         const desc = String(p.meta?.desc || p.desc || '').slice(0, 155)
         content = `<div class="seo-card"><h1 style="margin:0 0 6px">${esc(p.title)}</h1>
@@ -90,22 +90,22 @@ ${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.title)}" style="max-width:3
       }
     } else if (pathname === '/blog') {
       const posts = st.posts.filter((x) => x.status === 'published')
-      content = `<h1>مجله پناه‌فیت</h1>` + posts.slice(0, 12).map((x) =>
+      content = `<h1>مجله میلانو</h1>` + posts.slice(0, 12).map((x) =>
         `<div class="seo-card"><a href="/post/${x.id}"><h2 style="margin:0 0 4px;font-size:1rem">${esc(x.title)}</h2></a><p class="seo-muted">${esc(String(x.body || '').slice(0, 140))}…</p></div>`).join('')
-      headMeta = head({ title: 'مجله و اخبار — ' + siteName, desc: 'مقالات تمرین، راهنمای سایز و اخبار کالکشن پناه‌فیت', url: base + '/blog' })
+      headMeta = head({ title: 'مجله و اخبار — ' + siteName, desc: 'مقالات تمرین، راهنمای سایز و اخبار کالکشن میلانو', url: base + '/blog' })
     } else if (post) {
       const x = st.posts.find((y) => y.status === 'published' && Number(y.id) === Number(post[1]))
-      if (!x) { content = '<h1>نوشته یافت نشد</h1>'; headMeta = head({ title: 'نوشته یافت نشد — پناه‌فیت', noindex: true }) }
+      if (!x) { content = '<h1>نوشته یافت نشد</h1>'; headMeta = head({ title: 'نوشته یافت نشد — میلانو', noindex: true }) }
       else {
         content = `<article><h1>${esc(x.title)}</h1><p class="seo-muted">${esc(x.author || '')} · ${esc(x.date || '')}</p>${String(x.body || '').split(/\n+/).map((par) => `<p>${esc(par)}</p>`).join('')}</article><p><a href="/blog">بازگشت به مجله</a></p>`
-        headMeta = head({ title: x.title + ' — مجله پناه‌فیت', desc: String(x.body || '').slice(0, 155), image: x.image ? base + x.image : undefined, url: base + pathname })
+        headMeta = head({ title: x.title + ' — مجله میلانو', desc: String(x.body || '').slice(0, 155), image: x.image ? base + x.image : undefined, url: base + pathname })
         ldJson = ld({ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: x.title, datePublished: x.publishedAt || undefined, author: { '@type': 'Organization', name: siteName }, ...(x.image ? { image: base + x.image } : {}) })
       }
     } else if (pathname === '/contact') {
       content = `<h1>تماس با ما</h1><p>${esc(st.settings.address || '')}</p><p>${esc(st.settings.phone || '')} ${esc(st.settings.telegramChannel || '')}</p>`
-      headMeta = head({ title: 'تماس با ما — ' + siteName, desc: 'پشتیبانی سفارش و همکاری فروشگاهی پناه‌فیت', url: base + '/contact' })
+      headMeta = head({ title: 'تماس با ما — ' + siteName, desc: 'پشتیبانی سفارش و همکاری فروشگاهی میلانو', url: base + '/contact' })
     } else if (pathname === '/checkout' || pathname.startsWith('/order/')) {
-      content = '<h1>پناه‌فیت</h1>'
+      content = '<h1>میلانو</h1>'
       headMeta = head({ title: 'سبد خرید — ' + siteName, noindex: true, desc: '' })
     } else return null // مسیرهای پنل و بقیه → shell سراسری با noindex (پایین)
 
@@ -116,7 +116,7 @@ ${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.title)}" style="max-width:3
   function renderShellNoindex(req) {
     try {
       const sh = readShell()
-      const meta = head({ title: 'پناه‌فیت — پنل مدیریت', desc: '', noindex: true })
+      const meta = head({ title: 'میلانو — پنل مدیریت', desc: '', noindex: true })
       return inject(sh, meta, '', '')
     } catch { return null }
   }

@@ -14,6 +14,7 @@ import {
   verifyPassword, hashPassword, rateLimiter, serveStatic, SECURITY_HEADERS,
 } from './lib.js'
 import { openDb } from './db.js'
+import { createMysqlBridge } from './mysql-bridge.js'
 import { generateCaption, createPayment, verifyPayment, aiSource, paymentSource } from './services.js'
 import { createMediaStore } from './media.js'
 import { createScheduler } from './scheduler.js'
@@ -31,6 +32,11 @@ const IS_TEST = process.env.PF_TEST === '1'
 const DB = openDb(ENV.DATA_DIR === 'memory' ? ':memory:' : join(ROOT, ENV.DATA_DIR || 'data', 'panahfit.db'),
   { username: ENV.ADMIN_USER || 'admin', password: ENV.ADMIN_PASS || '12345' })
 const MEDIA = createMediaStore(ENV.DATA_DIR === 'memory' ? '/tmp/panahfit-media-test' : join(ROOT, ENV.DATA_DIR || 'data', 'media'))
+/* پل MySQL هاست اشتراکی (cPanel) — ساخت/تطبیق/ترمیم جداول و همگام‌سازی زنده */
+const DBBRIDGE = createMysqlBridge({
+  localDb: DB, dataDir: ENV.DATA_DIR === 'memory' ? '/tmp/panahfit-test' : join(ROOT, ENV.DATA_DIR || 'data'), log: (m) => console.log('[db-bridge]', m),
+  onSync: (kind) => console.log('[db-bridge]', kind, new Date().toISOString()),
+})
 const SCHED = createScheduler({ DB, env: ENV, audit: DB.audit })
 const PUSH = createPushService(ENV, DB)
 /** ارسال fire-and-forget؛ خطا هرگز مسیر کاربر را نمی‌شکند */
@@ -170,6 +176,7 @@ async function handle(req, res) {
       ok: true, app: 'panahfit-api', version: 3,
       ai: aiSource(ENV), payment: paymentSource(ENV),
       scheduler: IS_TEST ? 'off' : 'on', push: `${PUSH.mode}:${DB.pushCount()}`, uptimeSec: Math.round(process.uptime()), time: new Date().toISOString(),
+      db: (() => { const g = DBBRIDGE.getState(); return { engine: g.enabled && g.connected ? 'mysql' : 'sqlite-local', syncedAt: g.lastSyncAt || null, pending: g.pending || 0 } })(),
     })
   }
   if (path === '/api/public/pricing' && method === 'GET') {
@@ -480,6 +487,58 @@ async function handle(req, res) {
     requirePerm(user, 'audit')
     const { items, total } = DB.listAudit(Number(url.searchParams.get('limit') || 100), Number(url.searchParams.get('offset') || 0))
     return sendJsonSafe(res, 200, { items, total })
+  }
+
+  /* ================= پل دیتابیس — Meelano on cPanel/MySQL ================= */
+  if (path === '/api/db' && method === 'GET') {
+    requirePerm(user, 'state:settings')
+    return sendJsonSafe(res, 200, DBBRIDGE.getState())
+  }
+  if (path === '/api/db/test' && method === 'POST') {
+    requirePerm(user, 'state:settings')
+    const b = await readBody(req)
+    try { return sendJsonSafe(res, 200, await DBBRIDGE.test(b)) }
+    catch (e) { return sendJsonSafe(res, 400, { ok: false, error: String(e?.message || e).slice(0, 300) }) }
+  }
+  if (path === '/api/db/apply' && method === 'POST') {
+    requirePerm(user, 'state:settings')
+    const b = await readBody(req)
+    try {
+      const out = await DBBRIDGE.apply(b, { syncUsers: !!b.syncUsers, importLocal: b.importLocal !== false })
+      DB.audit(user.username, 'db.apply', '', `mysql:${b.host}/${b.database}`)
+      return sendJsonSafe(res, 200, out)
+    } catch (e) { return sendJsonSafe(res, 422, { ok: false, error: String(e?.message || e).slice(0, 300) }) }
+  }
+  if (path === '/api/db/health' && method === 'GET') {
+    requirePerm(user, 'state:settings')
+    return sendJsonSafe(res, 200, await DBBRIDGE.health())
+  }
+  if (path === '/api/db/repair' && method === 'POST') {
+    requirePerm(user, 'state:settings')
+    const b = await readBody(req)
+    try {
+      const out = await DBBRIDGE.repair({ rebuild: Array.isArray(b.rebuild) ? b.rebuild : [] })
+      DB.audit(user.username, 'db.repair', '', JSON.stringify(b).slice(0, 120))
+      return sendJsonSafe(res, 200, out)
+    } catch (e) { return sendJsonSafe(res, 422, { ok: false, error: String(e?.message || e).slice(0, 300) }) }
+  }
+  if (path === '/api/db/push' && method === 'POST') {
+    requirePerm(user, 'state:settings')
+    try { return sendJsonSafe(res, 200, await DBBRIDGE.push()) }
+    catch (e) { return sendJsonSafe(res, 422, { ok: false, error: String(e?.message || e).slice(0, 300) }) }
+  }
+  if (path === '/api/db/pull' && method === 'POST') {
+    requirePerm(user, 'state:settings')
+    try {
+      const out = await DBBRIDGE.pull()
+      DB.audit(user.username, 'db.pull', '', 'import from mysql')
+      return sendJsonSafe(res, 200, out)
+    } catch (e) { return sendJsonSafe(res, 422, { ok: false, error: String(e?.message || e).slice(0, 300) }) }
+  }
+  if (path === '/api/db/disconnect' && method === 'POST') {
+    requirePerm(user, 'state:settings')
+    DB.audit(user.username, 'db.disconnect', '', '')
+    return sendJsonSafe(res, 200, await DBBRIDGE.disconnect())
   }
   if (path === '/api/audit/logins' && method === 'GET') {
     requirePerm(user, 'audit')
@@ -822,9 +881,10 @@ if (!IS_TEST) {
   sweepTimer = setInterval(() => { try { MEDIA.sweep(referencedMediaPaths()) } catch { /* noop */ } }, 6 * 3600_000)
 }
 
-function stopTimers() { clearInterval(schedTimer); clearInterval(sweepTimer) }
+function stopTimers() { clearInterval(schedTimer); clearInterval(sweepTimer); try { DBBRIDGE.stop() } catch { /* noop */ } }
 
 if (!IS_TEST) {
+  DBBRIDGE.boot().then((on) => { if (on) console.log('[db-bridge] همگام‌سازی MySQL فعال شد') })
   server.listen(PORT, '0.0.0.0', () => {
     console.log(`[panahfit-api] http://0.0.0.0:${PORT}  (ai=${aiSource(ENV)}, payment=${paymentSource(ENV)}, scheduler=${'on'}, db=${ENV.DATA_DIR || 'data/panahfit.db'})`)
   })

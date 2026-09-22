@@ -12,3 +12,5 @@ dist/
 *.apk
 
 .capacitor-variant
+
+/data-live/

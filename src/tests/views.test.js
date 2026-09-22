@@ -51,7 +51,7 @@ describe('views (jsdom)', () => {
     await w.find('form').trigger('submit.prevent')
     await new Promise((r) => setTimeout(r, 600))
     await w.vm.$nextTick()
-    expect(w.text()).toContain('PanahFit CMS') // header shell
+    expect(w.text()).toContain('Meelano CMS') // header shell
     expect(w.find('#sidebar').exists()).toBe(true)
   })
 

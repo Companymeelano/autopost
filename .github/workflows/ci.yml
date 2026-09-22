@@ -77,3 +77,32 @@ jobs:
           fi
           cat /tmp/health.json
           docker rm -f pf
+
+  mysql-bridge:
+    name: MySQL bridge (cPanel parity)
+    runs-on: ubuntu-24.04
+    needs: test-build
+    services:
+      mysql:
+        image: mysql:8.0
+        env: { MYSQL_ROOT_PASSWORD: root, MYSQL_DATABASE: meelano_test }
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s --health-timeout=5s --health-retries=24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build
+      - name: wait mysql
+        run: for i in $(seq 1 30); do mysqladmin ping -h 127.0.0.1 -uroot -proot 2>/dev/null && break; sleep 2; done
+      - name: live bridge test
+        run: node --disable-warning=ExperimentalWarning scripts/test-mysql-live.mjs 2>&1 | tee /tmp/mx.log
+        env: { PF_TEST_MYSQL_HOST: '127.0.0.1', PF_TEST_MYSQL_PASS: root }
+      - name: annotate on fail
+        if: failure()
+        run: |
+          MSG=$(grep -E "FAIL|FATAL|Error|ALL MYSQL" /tmp/mx.log | head -10 | tr '\n' '~' | sed 's/:/%3A/g;s/~/ /g' | head -c 900)
+          echo "::error title=mysql-bridge failed::${MSG:-see log}"

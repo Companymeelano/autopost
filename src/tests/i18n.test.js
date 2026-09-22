@@ -66,7 +66,7 @@ describe('i18n scope', () => {
     localStorage.setItem('panahfit.lang.v1', 'en')
     const w = await mountAt('/login')
     expect(document.documentElement.dir).toBe('rtl')
-    expect(w.text()).toContain('PanahFit') // فرم ورود فارسی‌پوسته است
+    expect(w.text()).toContain('Meelano') // فرم ورود فارسی‌پوسته است
   })
 
   it('checkout summary labels are translated', async () => {

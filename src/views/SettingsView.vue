@@ -110,6 +110,68 @@ function onRestoreFile(ev) {
   }
   r.readAsText(file)
 }
+/* ================= Meelano DB — پل MySQL هاست اشتراکی (cPanel) ================= */
+const db = reactive({
+  busy: '', err: '', state: null, health: null, testOut: null, guide: false,
+  form: { host: 'localhost', port: '3306', user: '', password: '', database: '', prefix: 'pf_', ssl: false },
+  syncUsers: false, importLocal: true,
+})
+async function dbLoad() {
+  if (!cms.online) return
+  try {
+    db.state = await apiFetch('/db')
+    const c = db.state.config || {}
+    Object.assign(db.form, { host: c.host || 'localhost', port: String(c.port || '3306'), user: c.user || '', database: c.database || '', prefix: c.prefix || 'pf_', ssl: !!c.ssl })
+    db.syncUsers = !!db.state.syncUsers
+  } catch { /* پنل محلی */ }
+}
+dbLoad()
+async function dbPost(path, body) {
+  db.busy = path
+  db.err = ''
+  try { return await apiFetch('/db' + path, { method: 'POST', body }) }
+  catch (e) { db.err = e.message; throw e }
+  finally { db.busy = '' }
+}
+async function dbTest() {
+  try {
+    db.testOut = await dbPost('/test', { ...db.form })
+    cms.toast(`اتصال برقرار شد ✓ MySQL ${db.testOut.version} — جداول میلانو موجود: ${db.testOut.existingTables.length}`)
+  } catch { cms.toast('تست اتصال ناموفق: ' + db.err, true) }
+}
+async function dbApply() {
+  if (!window.confirm('ساخت و تطبیق جداول روی MySQL میزبان و جایگذاری کامل دادهٔ پنل انجام شود؟')) return
+  try {
+    await dbPost('/apply', { ...db.form, syncUsers: db.syncUsers, importLocal: db.importLocal })
+    db.applyOk = true
+    cms.toast('✓ جداول ساخته و هم‌سازی شد — داده روی دیتابیس هاست جایگذاری گردید.')
+    await dbHealth()
+  } catch { cms.toast('اعمال ناموفق: ' + db.err, true) }
+}
+async function dbHealth() {
+  db.busy = '/health'
+  try { db.health = await apiFetch('/db/health'); db.err = '' }
+  catch (e) { db.err = e.message }
+  finally { db.busy = '' }
+}
+async function dbRepair(rebuild = []) {
+  try {
+    const r = await dbPost('/repair', { rebuild })
+    db.health = { enabled: true, tables: r.tables }
+    cms.toast(rebuild.length ? `جدول‌های انتخابی بازسازی شد (${rebuild.length}).` : 'ترمیم خودکار انجام شد ✓')
+  } catch { cms.toast('ترمیم ناموفق: ' + db.err, true) }
+}
+async function dbPush() { try { await dbPost('/push', {}); cms.toast('داده‌ها روی MySQL جایگذاری شد ✓'); await dbHealth() } catch { cms.toast('جایگذاری ناموفق: ' + db.err, true) } }
+async function dbPull() {
+  if (!window.confirm('ساختار محلی با جداول دیتابیس میزبان یکسان‌سازی شود؟ (وارد کردن از هاست)')) return
+  try { const r = await dbPost('/pull', {}); cms.toast(`فراخوانی جداول انجام شد — محصولات: ${r.rows.products}، پست‌ها: ${r.rows.posts} ✓`); await cms.pullState?.() } catch { cms.toast('فراخوانی ناموفق: ' + db.err, true) }
+}
+async function dbDisconnect() {
+  if (!window.confirm('همگام‌سازی با MySQL غیرفعال شود؟ (داده‌های پنل دست‌نخورده می‌ماند)')) return
+  await dbPost('/disconnect', {}); db.health = null; db.state = await apiFetch('/db').catch(() => null)
+  cms.toast('اتصال دیتابیس میزبان قطع شد.')
+}
+
 function resetAll() {
   if (!window.confirm('همه داده‌های محلی پاک شده و داده‌های نمونه جایگزین می‌شوند. ادامه می‌دهید؟')) return
   cms.resetToSeed()
@@ -247,6 +309,77 @@ function reconnectApp() {
         </button>
       </div>
     </div>
+    <div class="data-card-3d lux-panel" style="margin-bottom: 20px;">
+      <h3 class="lux-title"><span class="ico3d ico3d-a"><i class="fas fa-database"></i></span> دیتابیس و اتصال به هاست (cPanel / MySQL) — میلانو</h3>
+      <p class="lux-hint">پس از ساخت Database و User در cPanel، اطلاعات را وارد کنید؛ جداول همهٔ بخش‌ها ساخته، داده‌ها جایگذاری و ساختار به‌صورت زنده سلامت‌سنجی می‌شود.</p>
+      <div v-if="!cms.online" class="lux-note"><i class="fas fa-plug"></i> این قابلیت با اتصال به سرور پنل فعال می‌شود. (الان حالت محلی/دمو است)</div>
+      <template v-else>
+        <div class="lux-status-row">
+          <span v-if="db.state?.enabled && db.state?.connected" class="status-chip chip-green">✓ متصل — همگام زندهٔ خودکار</span>
+          <span v-else class="status-chip chip-amber">اتصال برقرار نشده</span>
+          <span v-if="db.state?.version" class="lux-mut">نسخه MySQL: <b dir="ltr">{{ db.state.version }}</b></span>
+          <span v-if="db.state?.lastSyncAt" class="lux-mut">آخرین همگام‌سازی: {{ new Date(db.state.lastSyncAt).toLocaleTimeString('fa-IR') }}</span>
+          <span v-if="db.state?.pending" class="status-chip chip-amber">{{ db.state.pending }} تغییر در صف</span>
+          <span v-if="db.state?.lastErr" class="status-chip chip-red">{{ db.state.lastErr }}</span>
+        </div>
+        <div class="field-row-2" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          <div class="form-group-3d"><label for="db-host">هاست دیتابیس</label><input id="db-host" v-model="db.form.host" class="cms-input" dir="ltr" placeholder="localhost" /></div>
+          <div class="form-group-3d"><label for="db-port">پورت</label><input id="db-port" v-model="db.form.port" class="cms-input" dir="ltr" inputmode="numeric" /></div>
+          <div class="form-group-3d"><label for="db-user">نام کاربری دیتابیس</label><input id="db-user" v-model="db.form.user" class="cms-input" dir="ltr" autocomplete="off" placeholder="cpaneluser_db" /></div>
+          <div class="form-group-3d"><label for="db-pass">رمز عبور دیتابیس</label><input id="db-pass" v-model="db.form.password" type="password" class="cms-input" dir="ltr" autocomplete="new-password" /></div>
+          <div class="form-group-3d"><label for="db-name">نام دیتابیس</label><input id="db-name" v-model="db.form.database" class="cms-input" dir="ltr" placeholder="cpaneluser_meelano" /></div>
+          <div class="form-group-3d"><label for="db-prefix">پیشوند جداول</label><input id="db-prefix" v-model="db.form.prefix" class="cms-input" dir="ltr" placeholder="pf_" /></div>
+        </div>
+        <div class="lux-checks">
+          <label for="db-ssl"><input id="db-ssl" type="checkbox" v-model="db.form.ssl" /> SSL (اگر میزبان الزام کرده)</label>
+          <label for="db-import"><input id="db-import" type="checkbox" v-model="db.importLocal" /> جایگذاری داده‌های فعلی پنل هنگام اعمال</label>
+          <label for="db-users"><input id="db-users" type="checkbox" v-model="db.syncUsers" /> همگام‌سازی کاربران و نشست‌های پنل هم</label>
+        </div>
+        <div class="lux-actions">
+          <button id="db-btn-test" class="cms-btn lux-btn" type="button" :disabled="!!db.busy" @click="dbTest"><span class="ico3d ico3d-s"><i class="fas" :class="db.busy==='/test'?'fa-spinner fa-spin':'fa-random'"></i></span> تست اتصال</button>
+          <button id="db-btn-apply" class="cms-btn lux-btn lux-btn-main" type="button" :disabled="!!db.busy" @click="dbApply"><span class="ico3d ico3d-g"><i class="fas" :class="db.busy==='/apply'?'fa-spinner fa-spin':'fa-magic'"></i></span> ساخت، تطبیق و جایگذاری جداول</button>
+          <button id="db-btn-health" class="cms-btn lux-btn" type="button" :disabled="!!db.busy" @click="dbHealth"><span class="ico3d ico3d-s"><i class="fas" :class="db.busy==='/health'?'fa-spinner fa-spin':'fa-heartbeat'"></i></span> بررسی سلامت</button>
+          <button id="db-btn-repair" class="cms-btn lux-btn" type="button" :disabled="!!db.busy || !db.health" @click="dbRepair()"><span class="ico3d ico3d-s"><i class="fas fa-tools"></i></span> ترمیم خودکار</button>
+          <button id="db-btn-push" class="cms-btn lux-btn" type="button" :disabled="!!db.busy || !db.state?.connected" @click="dbPush"><span class="ico3d ico3d-s"><i class="fas fa-upload"></i></span> جایگذاری کامل داده</button>
+          <button id="db-btn-pull" class="cms-btn lux-btn" type="button" :disabled="!!db.busy || !db.state?.connected" @click="dbPull"><span class="ico3d ico3d-s"><i class="fas fa-download"></i></span> فراخوانی از میزبان</button>
+          <button id="db-btn-off" class="cms-btn lux-btn lux-btn-danger" type="button" :disabled="!!db.busy || !db.state?.connected" @click="dbDisconnect"><span class="ico3d ico3d-s"><i class="fas fa-plug"></i></span> قطع اتصال</button>
+        </div>
+        <div v-if="db.err" class="lux-err"><i class="fas fa-triangle-exclamation"></i> {{ db.err }}</div>
+        <div v-if="db.health?.tables?.length" class="lux-health">
+          <div class="lux-health-head"><i class="fas fa-table-list"></i> گزارش سلامت و تطبیق جداول (ساختار اصلی پنل میلانو)
+            <button class="cms-btn-mini" @click="dbRepair(db.health.tables.filter(t=>t.status!=='ok').map(t=>t.table))" :disabled="!!db.busy">ترمیم موارد معیوب</button>
+          </div>
+          <table class="cms-table lux-table">
+            <thead><tr><th>بخش / جدول</th><th>وضعیت</th><th>سطرهای میزبان</th><th>توضیح</th></tr></thead>
+            <tbody>
+              <tr v-for="t in db.health.tables" :key="t.table">
+                <td><b>{{ t.label }}</b> <span class="lux-mut" dir="ltr">pf_{{ t.table }}*</span></td>
+                <td><span class="status-chip" :class="t.status==='ok'?'chip-green':t.status==='missing'?'chip-red':'chip-amber'">{{ t.status==='ok'?'✓ سالم':t.status==='missing'?'ساخته نشده':'ناسازگار' }}</span></td>
+                <td dir="ltr" style="text-align:center">{{ t.rows ?? '—' }}</td>
+                <td class="lux-mut">
+                  <template v-if="t.missingColumns?.length">ستون‌های جاافتاده: <b dir="ltr">{{ t.missingColumns.join(', ') }}</b> — با «تریم» افزوده می‌شود</template>
+                  <template v-else-if="t.repaired">اصلاح‌شده: {{ t.repaired }}</template>
+                  <template v-else-if="t.extraColumns?.length">ستون اضافی میزبان (بی‌ضرر)</template>
+                  <template v-else-if="t.status==='ok'">سازگار با ساختار پنل ✓</template>
+                  <template v-else>—</template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="lux-guide">
+          <button class="cms-btn-mini" type="button" @click="db.guide=!db.guide"><i class="fas fa-compass"></i> راهنمای سریع استقرار روی سی‌پنل (Meelano)</button>
+          <ol v-show="db.guide" class="lux-ol">
+            <li>در cPanel ← <b>MySQL® Databases</b>: یک دیتابیس و یک کاربر بسازید و کاربر را با <b>All Privileges</b> به دیتابیس وصل کنید.</li>
+            <li>در <b>Setup Node.js App</b> برنامه‌ای روی پوشهٔ نصب میلانو بسازید: Node v20+، پراپرتی `server/index.js` با command «npm run server»؛ فایل کمکی <span dir="ltr">deploy/cpanel/</span> داخل ریپو آماده است.</li>
+            <li>dist را با <span dir="ltr">npm run build</span> بسازید (یا فایل‌های `dist/` را آپلود کنید).</li>
+            <li>به همین صفحه برگردید؛ اطلاعات دیتابیس را وارد و «تست اتصال» سپس «ساخت، تطبیق و جایگذاری جداول» را بزنید.</li>
+            <li>از این پس هر تغییر پنل داخل جداول MySQL هاست هم نوشته می‌شود؛ فروشگاه از همان داده‌ها تغذیه می‌شود. برای میزبان جدید: «فراخوانی از میزبان».</li>
+          </ol>
+        </div>
+      </template>
+    </div>
+
     <div v-if="isNativeApp" class="cms-card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;margin-top:14px">
       <i class="fab fa-android" style="color:#7dffb0"></i>
       <span style="font-size:.8rem">اپ اندروید به <b dir="ltr" style="color:#9ad7ff">{{ nativeServer }}</b> متصل است.</span>

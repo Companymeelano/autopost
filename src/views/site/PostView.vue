@@ -11,7 +11,7 @@ const route = useRoute()
 onMounted(async () => {
   await site.load()
   const p = post.value
-  if (p) setSeo(p.title + ' — مجله پناه‌فیت', String(p.body || '').slice(0, 150), p.image)
+  if (p) setSeo(p.title + ' — مجله میلانو', String(p.body || '').slice(0, 150), p.image)
 })
 const post = computed(() => site.postById(route.params.id))
 const { t } = useI18n()
@@ -25,7 +25,7 @@ const { t } = useI18n()
   <article v-else class="ps">
     <p class="ps-crumb"><RouterLink to="/blog">{{ t('nav.blog') }}</RouterLink> / {{ post.title }}</p>
     <h1>{{ post.title }}</h1>
-    <p class="ps-meta"><i class="fas fa-user-pen"></i> {{ post.author || 'تیم پناه‌فیت' }} · <i class="fas fa-calendar-day"></i> {{ post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('fa-IR') : post.date }}</p>
+    <p class="ps-meta"><i class="fas fa-user-pen"></i> {{ post.author || 'تیم میلانو' }} · <i class="fas fa-calendar-day"></i> {{ post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('fa-IR') : post.date }}</p>
     <img v-if="post.image" class="ps-img" :src="post.image" :alt="post.title" />
     <div class="ps-body"><p v-for="(par, i) in String(post.body || '').split(/\n+/)" :key="i">{{ par }}</p></div>
     <RouterLink to="/blog" class="ps-back">{{ t('post.back') }}</RouterLink>

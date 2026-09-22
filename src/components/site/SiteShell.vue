@@ -3,6 +3,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCart } from '../../stores/cart'
+import { isDemoMode, setDemoMode as _setDemo } from '../../app-mode'
+const demoMode = isDemoMode()
+function exitDemo() { _setDemo(false); location.reload() }
+const dbEngine = ref('')
+fetch('/api/health').then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.db) dbEngine.value = j.db.engine || '' }).catch(() => {})
+
 import { useSite } from '../../stores/site'
 import { toFa } from '../../utils/format'
 import { useI18n } from '../../i18n'
@@ -47,7 +53,7 @@ function cmsToast(msg, bad) { import('../../stores/cms').then(({ useCms }) => us
 <template>
   <div class="site-shell">
     <header class="site-header">
-      <RouterLink to="/" class="site-logo"><i class="fas fa-bolt"></i> {{ site.settings.siteName || 'پناه‌فیت' }}</RouterLink>
+      <RouterLink to="/" class="site-logo"><i class="fas fa-bolt"></i> {{ site.settings.siteName || 'میلانو' }}</RouterLink>
       <nav class="site-nav" aria-label="ناوبری اصلی">
         <RouterLink v-for="n in nav" :key="n.to" :to="n.to" :class="{ on: route.path === n.to }">{{ t(n.key) }}</RouterLink>
       </nav>
@@ -59,6 +65,12 @@ function cmsToast(msg, bad) { import('../../stores/cms').then(({ useCms }) => us
           <span v-if="cartCount" class="cart-badge">{{ toFa(cartCount) }}</span>
         </RouterLink>
         <RouterLink v-if="!isShopApp" to="/login" class="site-admin" title="پنل مدیریت"><i class="fas fa-user-shield"></i></RouterLink>
+        <span class="src-chip" :class="site.source === 'server' ? (dbEngine === 'mysql' ? 'src-live' : 'src-server') : 'src-demo'" :title="site.source === 'server' ? 'داده از سرور' : 'داده نمونهٔ دمو'">
+          <i class="fas" :class="site.source === 'server' ? 'fa-cloud' : 'fa-flask'"></i>
+          <template v-if="site.source === 'server'">{{ dbEngine === 'mysql' ? 'MySQL هاست' : 'سرور' }}</template>
+          <template v-else>دمو</template>
+        </span>
+        <button v-if="demoMode" class="src-chip src-exit" type="button" @click="exitDemo" title="خروج از دمو"><i class="fas fa-right-from-bracket"></i></button>
       </div>
     </header>
 
@@ -68,7 +80,7 @@ function cmsToast(msg, bad) { import('../../stores/cms').then(({ useCms }) => us
 
     <footer class="site-footer">
       <div>
-        <h4>پناه‌فیت</h4>
+        <h4 class="site-foot-brand">میلانو <span dir="ltr">Meelano</span></h4>
         <p>{{ site.settings.address || 'تهران — ارسال به سراسر کشور' }}</p>
       </div>
       <div>
@@ -92,6 +104,13 @@ function cmsToast(msg, bad) { import('../../stores/cms').then(({ useCms }) => us
 .site-header { display: flex; align-items: center; gap: 18px; padding: 14px clamp(16px, 4vw, 48px); position: sticky; top: 0; z-index: 30; background: rgba(10, 10, 20, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0, 255, 170, 0.25); }
 .site-logo { font-weight: 900; font-size: 1.15rem; color: #00ffaa; text-decoration: none; text-shadow: 0 0 14px rgba(0, 255, 170, 0.5); }
 .site-nav { display: flex; gap: 4px; flex: 1; }
+.src-chip { display:inline-flex; align-items:center; gap:6px; font-size:.68rem; font-weight:800; padding:4px 11px; border-radius:99px; border:1px solid #2b2b4a; background:#12121f; color:#9ad7ff; }
+.src-live { color:#39ff8d; border-color:#1c4a36; box-shadow:0 0 14px rgba(57,255,141,.18); }
+.src-server { color:#6ee7b7; }
+.src-demo { color:#ffd166; border-color:#4a3f1c; }
+.src-exit { cursor:pointer; color:#ff7a92 }
+.site-foot-brand { letter-spacing:.4px }
+.site-foot-brand span { opacity:.55; font-size:.7em }
 .site-nav a { color: #b9b9d0; text-decoration: none; padding: 7px 13px; border-radius: 9px; font-size: .88rem; transition: all .2s; }
 .site-nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
 .site-nav a.on { color: #00ffaa; background: rgba(0, 255, 170, 0.08); box-shadow: inset 0 0 0 1px rgba(0, 255, 170, 0.3); }

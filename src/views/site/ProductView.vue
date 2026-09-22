@@ -26,7 +26,7 @@ function fixQty() {
 watch(product, () => {
   fixQty()
   const p = product.value
-  if (p) setSeo(p.title + ' — پناه‌فیت', (p.meta?.desc || p.desc || '').slice(0, 155), p.image)
+  if (p) setSeo(p.title + ' — میلانو', (p.meta?.desc || p.desc || '').slice(0, 155), p.image)
 })
 
 const similar = computed(() => {

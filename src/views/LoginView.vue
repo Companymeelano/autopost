@@ -1,4 +1,5 @@
 <script setup>
+import { isDemoMode, setDemoMode } from '../app-mode'
 import { reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useCms } from '../stores/cms'
@@ -7,6 +8,8 @@ import { validateLogin } from '../utils/validation'
 const cms = useCms()
 const router = useRouter()
 const route = useRoute()
+const demoOn = ref(isDemoMode())
+function enterDemo() { setDemoMode(!demoOn.value); location.reload() }
 const form = reactive({ username: 'admin', password: '' })
 const errors = ref({})
 const busy = ref(false)
@@ -29,7 +32,7 @@ async function submit() {
 <template>
   <main id="login-page">
     <div class="auth-container">
-      <h2 class="auth-title"><i class="fas fa-lock"></i> پنل مدیریت PanahFit</h2>
+      <h2 class="auth-title"><span class="ico3d ico3d-a"><i class="fas fa-shield-alt"></i></span> پنل مدیریت میلانو <small class="brand-en">Meelano</small></h2>
       <p class="login-hint">
         لطفاً برای دسترسی، وارد حساب کاربری خود شوید.
         <br>
@@ -59,10 +62,18 @@ async function submit() {
           {{ busy ? 'در حال بررسی...' : 'ورود به پنل' }}
         </button>
       </form>
+      <div class="demo-row">
+        <button id="login-demo" type="button" class="cms-btn cms-btn-ghost lux-btn" :disabled="busy" @click="enterDemo">
+          <span class="ico3d ico3d-s"><i class="fas fa-flask"></i></span>
+          {{ demoOn ? 'خروج از حالت دمو' : 'ورود به حالت دمو (بدون سرور)' }}
+        </button>
+      </div>
     </div>
   </main>
 </template>
 
 <style scoped>
+.demo-row { margin-top: 14px; text-align: center; }
+.brand-en { font-size: .62em; opacity: .7; font-weight: 400; }
 .login-hint { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; text-align: center; }
 </style>

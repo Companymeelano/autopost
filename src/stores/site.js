@@ -46,7 +46,7 @@ export const useSite = defineStore('site', () => {
         .filter((p) => !hidden || (p.stock ?? 0) > 0)
         .map((p) => ({ id: p.id, title: p.title, cat: p.cat, price: p.price, oldPrice: p.oldPrice || 0, stock: p.stock ?? 0, desc: p.desc || '', image: String(p.image || '').startsWith('/media/') ? p.image : '', meta: p.meta || {} }))
       posts.value = cms.posts.filter((p) => p.status === 'published')
-      settings.value = { siteName: cms.settings?.siteName || 'پناه‌فیت', newDiscount: !!cms.settings?.newDiscount, telegramChannel: cms.settings?.telegramChannel || '', phone: cms.settings?.phone || '', address: cms.settings?.address || '' }
+      settings.value = { siteName: cms.settings?.siteName || 'میلانو', newDiscount: !!cms.settings?.newDiscount, telegramChannel: cms.settings?.telegramChannel || '', phone: cms.settings?.phone || '', address: cms.settings?.address || '' }
       source.value = 'local'
       error.value = ''
     } finally { loading.value = false }

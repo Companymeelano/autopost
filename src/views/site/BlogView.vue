@@ -20,7 +20,7 @@ onMounted(() => site.load())
         <div class="bl-body">
           <h2>{{ p.title }}</h2>
           <p>{{ String(p.body || '').slice(0, 120) }}{{ String(p.body || '').length > 120 ? '…' : '' }}</p>
-          <small>{{ p.author || 'تیم پناه‌فیت' }} · {{ p.publishedAt ? new Date(p.publishedAt).toLocaleDateString('fa-IR') : p.date }}</small>
+          <small>{{ p.author || 'تیم میلانو' }} · {{ p.publishedAt ? new Date(p.publishedAt).toLocaleDateString('fa-IR') : p.date }}</small>
         </div>
       </RouterLink>
     </div>

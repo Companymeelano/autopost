@@ -13,9 +13,9 @@ import SettingsView from './views/SettingsView.vue'
 
 export const routes = [
   // ---- فاز ۳: صفحات عمومی سایت ----
-  { path: '/', name: 'shop', component: () => import('./views/site/ShopView.vue'), meta: { site: true, title: 'فروشگاه پناه‌فیت | لباس ورزشی' } },
+  { path: '/', name: 'shop', component: () => import('./views/site/ShopView.vue'), meta: { site: true, title: 'فروشگاه میلانو | لباس ورزشی' } },
   { path: '/product/:id(\\d+)', name: 'product', component: () => import('./views/site/ProductView.vue'), meta: { site: true } },
-  { path: '/blog', name: 'blog', component: () => import('./views/site/BlogView.vue'), meta: { site: true, title: 'مجله پناه‌فیت' } },
+  { path: '/blog', name: 'blog', component: () => import('./views/site/BlogView.vue'), meta: { site: true, title: 'مجله میلانو' } },
   { path: '/post/:id(\\d+)', name: 'post', component: () => import('./views/site/PostView.vue'), meta: { site: true } },
   { path: '/checkout', name: 'checkout', component: () => import('./views/site/CheckoutView.vue'), meta: { site: true, title: 'سبد خرید و پرداخت' } },
   { path: '/order/:ref', name: 'order-status', component: () => import('./views/site/OrderView.vue'), meta: { site: true, title: 'پیگیری سفارش' } },
@@ -64,7 +64,7 @@ export function makeRouter() {
   })
   router.afterEach((to) => {
     // صفحات ویو خودشان عنوان سئو را ست می‌کنند (utils/seo)؛ اینجا فقط پنل
-    if (!to.meta.site || to.meta.title) document.title = (to.meta.title ? to.meta.title + ' — ' : '') + (to.meta.site ? 'پناه‌فیت' : 'PanahFit CMS')
+    if (!to.meta.site || to.meta.title) document.title = (to.meta.title ? to.meta.title + ' — ' : '') + (to.meta.site ? 'میلانو' : 'Meelano CMS')
   })
   return router
 }

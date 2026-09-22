@@ -190,3 +190,29 @@ describe('ReportsView (finance)', () => {
     expect(w.text()).toContain('نیازمند اتصال سرور')
   })
 })
+
+describe('SettingsView — کارت دیتابیس cPanel (Meelano DB)', () => {
+  it('کارت، فیلدها و دکمه‌های اتصال/ساخت/سلامت رندر می‌شوند', async () => {
+    stubServer({
+      'GET /db': () => ({ data: { enabled: false, connected: false, config: { host: 'localhost', port: 3306, user: '', database: '', prefix: 'pf_', password: '' }, version: '', lastSyncAt: 0, lastErr: '', pending: 0, running: false, localRev: 1, syncUsers: false, tablesExpected: 15 } }),
+      'POST /db/test': () => ({ data: { ok: true, version: '8.0.36', existingTables: [] } }),
+      'GET /db/health': () => ({ data: { enabled: false, tables: [] } }),
+    })
+    const w = await mountOnline()
+    await w.vm.$router.push('/settings')
+    await next(w)
+    expect(w.text()).toContain('دیتابیس و اتصال به هاست')
+    expect(w.find('#db-host').exists()).toBe(true)
+    expect(w.find('#db-user').exists()).toBe(true)
+    expect(w.find('#db-btn-test').exists()).toBe(true)
+    expect(w.find('#db-btn-apply').exists()).toBe(true)
+    expect(w.find('#db-btn-health').exists()).toBe(true)
+    expect(w.text()).toContain('اتصال برقرار نشده')
+    // تست اتصال دکمه را پرتاب نمی‌کند و پیام موفقیت نشان می‌دهد
+    await w.find('#db-btn-test').trigger('click')
+    await next(w, 4)
+    expect(w.text()).toContain('تست اتصال')
+    const { useCms } = await import('../stores/cms.js')
+    expect(useCms().toasts.some((t) => t.text.includes('اتصال برقرار شد'))).toBe(true)
+  })
+})
