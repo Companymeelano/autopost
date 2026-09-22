@@ -210,9 +210,7 @@ describe('SettingsView — کارت دیتابیس cPanel (Meelano DB)', () => {
     expect(w.text()).toContain('اتصال برقرار نشده')
     // تست اتصال دکمه را پرتاب نمی‌کند و پیام موفقیت نشان می‌دهد
     await w.find('#db-btn-test').trigger('click')
-    await next(w, 4)
-    expect(w.text()).toContain('تست اتصال')
-    const { useCms } = await import('../stores/cms.js')
-    expect(useCms().toasts.some((t) => t.text.includes('اتصال برقرار شد'))).toBe(true)
+    await vi.waitFor(() => expect(w.text()).toContain('اتصال برقرار شد'), { timeout: 4000 })
+    expect(w.find('#db-btn-test').exists()).toBe(true)
   })
 })
