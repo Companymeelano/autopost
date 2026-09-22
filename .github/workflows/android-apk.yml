@@ -75,15 +75,15 @@ jobs:
 
       - name: collect
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk "panahfit-${{ matrix.variant }}.apk"
-          ls -lah panahfit-*.apk && sha256sum panahfit-*.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk "meelano-${{ matrix.variant }}.apk"
+          ls -lah meelano-*.apk && sha256sum meelano-*.apk
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: panahfit-${{ matrix.variant }}-apk
+          name: meelano-${{ matrix.variant }}-apk
           path: |
-            panahfit-${{ matrix.variant }}.apk
+            meelano-${{ matrix.variant }}.apk
             apk-gradle-fail.log
           if-no-files-found: warn
 
@@ -97,7 +97,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: panahfit-*-apk
+          pattern: meelano-*-apk
           merge-multiple: true
           path: out
       - name: release
@@ -111,8 +111,8 @@ jobs:
           ls -lah out/
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" --target ${{ github.sha }} \
-              --title "پناه‌فیت اندروید $TAG (فروشگاه + پنل)" \
-              --notes "دو APK مستقل: **panahfit-shop.apk** (فقط فروشگاه با چیدمان بهینه‌شده محصولات) و **panahfit-admin.apk** (همه بخش‌های پنل: داشبورد، محصولات، محتوا/پست‌ها، قیمت‌گذاری، پیام‌ها، AI، سفارش‌ها، گزارش مالی، تراکنش‌ها، ممیزی، کاربران، تنظیمات). پس از اولین اجرا آدرس سرور پناه‌فیت را وارد کنید — هر دو اپ به همان سرور وصل و همگام‌اند. build debug با signing پیش‌فرض." || { echo "::error title=release create failed::gh release create failed for $TAG"; exit 1; }
+              --title "میلانو (Meelano) اندروید $TAG — فروشگاه + پنل" \
+              --notes "دو APK مستقل با برند جدید Meelano: **meelano-shop.apk** (فروشگاه) و **meelano-admin.apk** (پنل کامل + کارت جدید «دیتابیس و اتصال به هاست cPanel/MySQL»: ساخت/تطبیق/ترمیم ۱۵ جدول و همگام‌سازی زنده). آیکون سه‌بعدی جدید میلانو، حالت دمو در هر دو اپ، و تم لاکچری 3D. پس از نصب، آدرس سرور میلانو را وارد کنید — اپ ابتدا سلامت سرور و نوع دیتابیس را بررسی می‌کند. build debug با signing پیش‌فرض؛ برای به‌روزرسانی روی نسخه قبلی، همان appId حفظ شده است." || { echo "::error title=release create failed::gh release create failed for $TAG"; exit 1; }
           fi
-          gh release upload "$TAG" out/panahfit-shop.apk out/panahfit-admin.apk --clobber || { echo "::error title=asset upload failed::upload failed"; exit 1; }
+          gh release upload "$TAG" out/meelano-shop.apk out/meelano-admin.apk --clobber || { echo "::error title=asset upload failed::upload failed"; exit 1; }
           gh release view "$TAG" --json url --jq '"Release: " + .url'
