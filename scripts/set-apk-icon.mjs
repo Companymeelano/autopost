@@ -9,8 +9,9 @@ const res = 'android/app/src/main/res'
 let n = 0
 import { execSync } from 'node:child_process'
 const SIZES = { mdpi: 48, hdpi: 72, xhdpi: 96, xxhdpi: 144, xxxhdpi: 192 }
+const PREBAKED = existsSync('build-assets/mipmaps') ? 'build-assets/mipmaps' : null
 let IMG = null
-for (const bin of ['magick', 'convert']) { try { execSync(`${bin} -version`, { stdio: 'ignore' }); IMG = bin; break } catch { /* next */ } }
+if (!PREBAKED) for (const bin of ['magick', 'convert']) { try { execSync(`${bin} -version`, { stdio: 'ignore' }); IMG = bin; break } catch { /* next */ } }
 function render(src2, px, out2, square = true) {
   if (IMG) {
     const geo = `${px}x${px}`
@@ -26,9 +27,15 @@ for (const d of existsSync(res) ? readdirSync(res) : []) {
   const dir = join(res, d)
   if (d.includes('anydpi')) { try { rmSync(join(dir, 'ic_launcher.xml'), { force: true }); rmSync(join(dir, 'ic_launcher_round.xml'), { force: true }); n++ } catch { /* noop */ } continue }
   const bucket = Object.entries(SIZES).find(([k]) => d.endsWith(k))?.[1] || 96
+  const key = Object.entries(SIZES).find(([k]) => d.endsWith(k))?.[0] || 'xhdpi'
   for (const f of ['ic_launcher.png', 'ic_launcher_round.png', 'ic_launcher_foreground.png']) {
     const p = join(dir, f)
-    if (existsSync(p)) { render(src, f.includes('foreground') ? bucket * 1.42 : bucket, p, !f.includes('foreground')); n++ }
+    if (!existsSync(p)) continue
+    if (PREBAKED) {
+      const pre = f.includes('foreground') ? join(PREBAKED, `ic_fg_${key}.png`) : join(PREBAKED, `ic_launcher_${key}.png`)
+      if (existsSync(pre)) { copyFileSync(pre, p); n++; continue }
+    }
+    render(src, f.includes('foreground') ? Math.round(bucket * 1.42) : bucket, p, !f.includes('foreground')); n++
   }
 }
 // حذف adaptive icon template → launcher خودش PNG را scale می‌کند (بدون ارجاع شکسته)
